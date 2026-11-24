@@ -1,0 +1,170 @@
+{
+  "_meta": {
+    "description": "Seed knowledge base for the evidence engine. Each passage is an editorial paraphrase written for CONVEAZY, not a quotation. Every entry must be checked against its source by a qualified reviewer, and every URL checked by a person, before public launch.",
+    "editorial_status": "draft, pending clinical review",
+    "links_verified": false,
+    "created": "2026-11-24"
+  },
+  "documents": [
+    {
+      "id": "nimh-bpd",
+      "title": "Borderline Personality Disorder",
+      "publisher": "National Institute of Mental Health (NIMH)",
+      "url": "https://www.nimh.nih.gov/health/topics/borderline-personality-disorder",
+      "kind": "clinical_org",
+      "evidence_level": "established",
+      "topics": ["bpd", "emotional_regulation"],
+      "text": "Borderline personality disorder (BPD) is a mental illness that affects how a person regulates emotions. People with BPD may experience intense mood shifts, instability in relationships and self-image, impulsive behaviour, and a strong fear of abandonment. Not everyone with BPD has every symptom, and how severe and how frequent symptoms are varies from person to person. BPD is treatable. Psychotherapy, including dialectical behaviour therapy (DBT), is the main form of treatment, and many people see their symptoms lessen over time."
+    },
+    {
+      "id": "nhs-bpd",
+      "title": "Borderline personality disorder: overview",
+      "publisher": "NHS",
+      "url": "https://www.nhs.uk/mental-health/conditions/borderline-personality-disorder/overview/",
+      "kind": "clinical_org",
+      "evidence_level": "established",
+      "topics": ["bpd", "relationships", "attachment_reassurance"],
+      "text": "People with borderline personality disorder can feel emotions very intensely, and those feelings can change quickly. Close relationships can feel especially intense, with worries about being left or rejected. Reactions to perceived rejection may be strong even when the other person did not intend rejection. Talking therapies such as dialectical behaviour therapy and mentalisation-based therapy are recommended treatments."
+    },
+    {
+      "id": "nami-bpd-family",
+      "title": "Borderline Personality Disorder, and support for family members and caregivers",
+      "publisher": "National Alliance on Mental Illness (NAMI)",
+      "url": "https://www.nami.org/about-mental-illness/mental-health-conditions/borderline-personality-disorder/",
+      "kind": "clinical_org",
+      "evidence_level": "established",
+      "topics": ["bpd", "supporting_partner", "boundaries"],
+      "text": "Partners and family members of someone living with a mental health condition can learn communication and coping skills, and peer-led family education programmes exist for this purpose. Supporting someone works best when supporters also look after their own wellbeing. Supporting a partner does not mean being responsible for their treatment or recovery. That responsibility is shared with the person and their care team."
+    },
+    {
+      "id": "nimh-depression",
+      "title": "Depression",
+      "publisher": "National Institute of Mental Health (NIMH)",
+      "url": "https://www.nimh.nih.gov/health/topics/depression",
+      "kind": "clinical_org",
+      "evidence_level": "established",
+      "topics": ["depression"],
+      "text": "Depression is a common but serious mood disorder. Signs can include a persistent sad, anxious or empty mood, loss of interest or pleasure in activities, fatigue or decreased energy, difficulty concentrating, irritability, and changes in sleep or appetite, lasting most of the day, nearly every day, for at least two weeks. Depression is treatable, commonly with psychotherapy, medication, or both, decided together with a health professional."
+    },
+    {
+      "id": "nhs-depression",
+      "title": "Clinical depression: overview and symptoms",
+      "publisher": "NHS",
+      "url": "https://www.nhs.uk/mental-health/conditions/clinical-depression/overview/",
+      "kind": "clinical_org",
+      "evidence_level": "established",
+      "topics": ["depression", "relationships"],
+      "text": "Depression can affect how a person relates to others. Symptoms can include losing interest in things they used to enjoy, avoiding contact with friends and taking part in fewer social activities, and feeling irritable or intolerant of others. Low energy and withdrawal can be part of the condition itself. They are not proof that the person has stopped caring, although only the person can say what they are feeling."
+    },
+    {
+      "id": "nimh-gad",
+      "title": "Generalized Anxiety Disorder: When Worry Gets Out of Control",
+      "publisher": "National Institute of Mental Health (NIMH)",
+      "url": "https://www.nimh.nih.gov/health/topics/generalized-anxiety-disorder-gad",
+      "kind": "clinical_org",
+      "evidence_level": "established",
+      "topics": ["gad", "attachment_reassurance"],
+      "text": "Generalized anxiety disorder (GAD) involves persistent and excessive worry about everyday matters, such as health, work or relationships, that is hard to control and lasts for months. Other signs can include restlessness, being easily tired, difficulty concentrating, irritability, muscle tension and sleep problems. GAD is treatable, commonly with cognitive behavioural therapy (CBT), medication, or both, chosen with a health professional."
+    },
+    {
+      "id": "nhs-gad",
+      "title": "Generalised anxiety disorder in adults",
+      "publisher": "NHS",
+      "url": "https://www.nhs.uk/mental-health/conditions/generalised-anxiety-disorder/overview/",
+      "kind": "clinical_org",
+      "evidence_level": "established",
+      "topics": ["gad", "attachment_reassurance", "relationships"],
+      "text": "With generalised anxiety disorder, people may feel anxious most days and struggle to remember the last time they felt relaxed. Worry can attach to uncertainty, including uncertainty in relationships. Seeking reassurance may bring short-term relief. Talking therapies such as CBT can help people build ways to tolerate uncertainty."
+    },
+    {
+      "id": "nhs-pcos",
+      "title": "Polycystic ovary syndrome (PCOS)",
+      "publisher": "NHS",
+      "url": "https://www.nhs.uk/conditions/polycystic-ovary-syndrome-pcos/",
+      "kind": "clinical_org",
+      "evidence_level": "established",
+      "topics": ["pcos", "hormonal_health"],
+      "text": "Polycystic ovary syndrome (PCOS) is a common condition that affects how the ovaries work. Its main features can include irregular periods, higher levels of androgens (which can cause excess facial or body hair, acne or hair thinning), and polycystic ovaries. Symptoms vary widely between people. Management is individual and is decided with a doctor."
+    },
+    {
+      "id": "who-pcos",
+      "title": "Polycystic ovary syndrome fact sheet",
+      "publisher": "World Health Organization (WHO)",
+      "url": "https://www.who.int/news-room/fact-sheets/detail/polycystic-ovary-syndrome",
+      "kind": "clinical_org",
+      "evidence_level": "established",
+      "topics": ["pcos", "hormonal_health", "depression", "gad"],
+      "text": "Beyond its physical effects, PCOS can affect emotional wellbeing and quality of life, and research has found higher rates of anxiety and depression among people with PCOS. This is a population-level finding. It does not mean any particular mood or reaction in a specific person is caused by PCOS, and it should never be used to dismiss what someone is feeling."
+    },
+    {
+      "id": "linehan-1993",
+      "title": "Cognitive-Behavioral Treatment of Borderline Personality Disorder",
+      "publisher": "Linehan, M. M. (1993). Guilford Press.",
+      "url": "https://www.guilford.com/books/Cognitive-Behavioral-Treatment-of-Borderline-Personality-Disorder/Marsha-Linehan/9780898621839",
+      "kind": "peer_reviewed",
+      "evidence_level": "established",
+      "topics": ["bpd", "emotional_regulation", "validation"],
+      "text": "Dialectical behaviour therapy (DBT) frames emotional dysregulation as coming from a mix of heightened emotional sensitivity and environments in which emotions were invalidated. DBT teaches emotion regulation, distress tolerance, interpersonal effectiveness and mindfulness. A central idea is balancing acceptance (validation) with change: someone's emotional response can make sense given their experience, even while the situation or behaviour is worked on."
+    },
+    {
+      "id": "linehan-1997-validation",
+      "title": "Validation and psychotherapy",
+      "publisher": "Linehan, M. M. (1997). In A. Bohart & L. Greenberg (Eds.), Empathy Reconsidered. American Psychological Association.",
+      "url": "https://psycnet.apa.org/record/1997-36506-016",
+      "kind": "peer_reviewed",
+      "evidence_level": "established",
+      "topics": ["validation", "communication", "emotional_regulation"],
+      "text": "Validation means communicating that another person's thoughts, feelings or behaviour make sense in some way, given their history or the current situation. Validating a feeling is not the same as agreeing with every interpretation or approving of every behaviour. Validation can lower emotional intensity and make problem-solving more possible."
+    },
+    {
+      "id": "hazan-shaver-1987",
+      "title": "Romantic love conceptualized as an attachment process",
+      "publisher": "Hazan, C., & Shaver, P. (1987). Journal of Personality and Social Psychology, 52(3), 511-524.",
+      "url": "https://doi.org/10.1037/0022-3514.52.3.511",
+      "kind": "peer_reviewed",
+      "evidence_level": "possible",
+      "topics": ["attachment_reassurance", "relationships"],
+      "text": "Adult attachment research suggests that romantic relationships involve attachment processes similar to those in early life. People differ in how anxious they feel about closeness and abandonment, and in how comfortable they are depending on others. A person higher in attachment anxiety may be more sensitive to signs of distance, such as silence or delayed replies. These are tendencies on a spectrum, not fixed types, and they cannot be read off a diagnosis."
+    },
+    {
+      "id": "gottman-four-horsemen",
+      "title": "The Four Horsemen: criticism, contempt, defensiveness and stonewalling",
+      "publisher": "The Gottman Institute, based on Gottman, J. M. (1994). What Predicts Divorce? Lawrence Erlbaum.",
+      "url": "https://www.gottman.com/blog/the-four-horsemen-recognizing-criticism-contempt-defensiveness-and-stonewalling/",
+      "kind": "practice_based",
+      "evidence_level": "possible",
+      "topics": ["conflict", "communication", "relationships"],
+      "text": "Gottman's observational research on couples identified four patterns linked to escalating conflict: criticism (attacking the person instead of describing a behaviour), contempt, defensiveness and stonewalling (shutting down). Suggested alternatives include a gentle start-up that describes a feeling and a specific situation, expressing appreciation, taking responsibility for one's own part, and self-soothing."
+    },
+    {
+      "id": "gottman-flooding",
+      "title": "Flooding and taking a break during conflict",
+      "publisher": "The Gottman Institute",
+      "url": "https://www.gottman.com/blog/the-four-horsemen-recognizing-criticism-contempt-defensiveness-and-stonewalling/",
+      "kind": "practice_based",
+      "evidence_level": "possible",
+      "topics": ["conflict", "emotional_regulation", "withdrawal"],
+      "text": "During heated conflict, people can become physiologically overwhelmed ('flooded'), which makes listening and problem-solving much harder. A common practice-based recommendation is to agree on a break of at least twenty minutes, say when you will come back, and do something calming in the meantime instead of rehearsing the argument. Withdrawal without saying when you will return can feel like rejection to the other person."
+    },
+    {
+      "id": "practice-i-statements",
+      "title": "Describing feelings and requests without blame",
+      "publisher": "Practice-based communication guidance, drawn from DBT interpersonal effectiveness (DEAR MAN) and Gottman's gentle start-up",
+      "url": "https://www.gottman.com/blog/the-four-horsemen-recognizing-criticism-contempt-defensiveness-and-stonewalling/",
+      "kind": "practice_based",
+      "evidence_level": "possible",
+      "topics": ["communication", "boundaries", "conflict"],
+      "text": "Messages tend to be easier to hear when they describe a specific situation, name the speaker's own feeling, state a clear need or request, and avoid absolutes such as 'always' and 'never' or claims about the other person's motives. This does not mean hiding anger or softening a boundary until it disappears. A boundary can be stated warmly and firmly at the same time."
+    },
+    {
+      "id": "practice-boundaries-support",
+      "title": "Supporting a partner without becoming their clinician",
+      "publisher": "Practice-based guidance, consistent with NAMI family education principles",
+      "url": "https://www.nami.org/about-mental-illness/mental-health-conditions/borderline-personality-disorder/",
+      "kind": "practice_based",
+      "evidence_level": "possible",
+      "topics": ["boundaries", "supporting_partner"],
+      "text": "Partners can offer care, presence and practical help while keeping limits on what they can sustain. Healthy boundaries describe what you will do, not what the other person must feel. For example: 'I want to talk this through, and I can't do it while we're shouting, so I'm going to take twenty minutes and come back.' Encouraging professional support is a form of care, not a rejection."
+    }
+  ]
+}
