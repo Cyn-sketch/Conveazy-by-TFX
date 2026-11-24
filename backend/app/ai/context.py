@@ -94,6 +94,6 @@ def build_personal_context(db: Session, user: User, checkin_id: str | None = Non
             ci = None
     if ci:
         ctx["your_recent_checkin"] = {
-            "feeling": ci.emotion, "intensity": f"{ci.intensity}/10", "need": ci.need, "wants_to": ci.intent,
+            "feeling": ci.emotion, "intensity": f"{ci.intensity}/10", "intensity_value": ci.intensity, "need": ci.need, "wants_to": ci.intent,
         }
     return ctx

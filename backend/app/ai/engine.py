@@ -168,7 +168,8 @@ def disclosed_conditions(text: str) -> set[str]:
 
 
 def bridge(provider: LLMProvider, *, scraps: str, confirmed_meaning: str | None, context: dict,
-           recipient_name: str, recipient_profile: dict, recipient_signal: dict | None) -> AIResult:
+           recipient_name: str, recipient_profile: dict, recipient_signal: dict | None,
+           include_feelings: bool = False) -> AIResult:
     """Sender's rough scraps -> confirmed meaning -> a message written for this recipient."""
     early, flags, crisis = _precheck("bridge", provider, scraps, confirmed_meaning)
     if early:
@@ -186,8 +187,11 @@ def bridge(provider: LLMProvider, *, scraps: str, confirmed_meaning: str | None,
     hits = sorted(hits, key=lambda h: (-len(set(h.doc.topics) & landing), -h.score))[:3]
     allowed = [h.doc.id for h in hits]
     payload = {"scraps": scraps, "confirmed_meaning": confirmed_meaning, "recipient_name": recipient_name,
-               "recipient_profile": recipient_profile, "recipient_signal": recipient_signal, "source_ids": allowed}
+               "recipient_profile": recipient_profile, "recipient_signal": recipient_signal, "source_ids": allowed,
+               "include_feelings": include_feelings,
+               "sender_intensity": (context.get("your_recent_checkin") or {}).get("intensity_value")}
     body = "RECIPIENT CHECK-IN SIGNAL (shared with consent; may be null):\n" + json.dumps(recipient_signal) + \
+           "\n\nINCLUDE FEELINGS: " + str(include_feelings).lower() + \
            "\n\nINPUT:\n" + json.dumps({"scraps": scraps, "confirmed_meaning": confirmed_meaning,
                                          "recipient_name": recipient_name}, ensure_ascii=False)
     system, user, ver = _compose("bridge", context, hits, body)

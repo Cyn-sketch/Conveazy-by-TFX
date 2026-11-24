@@ -138,7 +138,8 @@ def bridge(body: BridgeIn, db: Session = Depends(get_db), user: User = Depends(a
     ctx = build_personal_context(db, user)
     r = engine.bridge(get_provider(), scraps=body.scraps, confirmed_meaning=body.confirmed_meaning, context=ctx,
                       recipient_name=partner.display_name if partner else "your partner",
-                      recipient_profile=recipient_profile, recipient_signal=signal)
+                      recipient_profile=recipient_profile, recipient_signal=signal,
+                      include_feelings=body.include_feelings)
     out = r.to_dict()
     out["recipient"] = {"name": partner.display_name if partner else None, "profile_items_used": len(recipient_profile),
                         "checkin_signal": signal is not None}

@@ -60,3 +60,23 @@ def test_bridge_works_without_partner_and_screens_crisis(make_user):
 def test_videos_list_is_marked_unverified(make_user):
     v = make_user().get("/api/knowledge/videos").json()
     assert v["channels"] and all(c["verified"] is False for c in v["channels"])
+
+
+def test_raw_feelings_read_for_both_partners(couple):
+    her, him = couple
+    r = her.post("/api/bridge", json={"scraps": "you went quiet AGAIN after dinner. i hate guessing. i'm not trying to fight i just need you to tell me whats going on"}).json()
+    raw = r["result"]["raw_feelings"]
+    assert "furious" in raw["feelings"] and "shut out" in raw["feelings"]
+    assert raw["underneath"] and "fear" in raw["underneath"]
+    r = him.post("/api/bridge", json={"scraps": SCRAPS}).json()
+    raw = r["result"]["raw_feelings"]
+    assert "running on empty" in raw["feelings"] and "misread" in raw["feelings"]
+
+
+def test_include_feelings_puts_raw_line_in_message(couple):
+    her, _ = couple
+    scraps = "you went quiet AGAIN. i hate guessing"
+    off = her.post("/api/bridge", json={"scraps": scraps}).json()["result"]
+    on = her.post("/api/bridge", json={"scraps": scraps, "include_feelings": True}).json()["result"]
+    assert on["raw_feelings"]["feelings_line"] in on["message"]
+    assert off["raw_feelings"]["feelings_line"] not in off["message"]

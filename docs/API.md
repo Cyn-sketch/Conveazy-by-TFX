@@ -26,7 +26,7 @@ Errors are always `{"detail": {"code": str, "message": str}}`. Interactive docs:
 | POST `/translate` | `{draft, styles?[], note?, save?}` | `AIEnvelope<TranslatorResult>` |
 | POST `/partner/ask` | `{question, conversation_id?}` | `AIEnvelope<PartnerAnswer>` (+`conversation_id` if history on) |
 | POST `/myself/reflect` | `{situation, interpretation?, emotions[], needs[], intensity?, save?}` | `AIEnvelope<ReflectionResult>` |
-| POST `/bridge` | `{scraps, confirmed_meaning?, save?}` | `AIEnvelope<BridgeResult>` + `recipient{name, profile_items_used, checkin_signal}` |
+| POST `/bridge` | `{scraps, confirmed_meaning?, include_feelings?, save?}` | `AIEnvelope<BridgeResult>` + `recipient{name, profile_items_used, checkin_signal}` |
 | GET `/knowledge/videos` | – | Candidate YouTube channels (`verified` flag) |
 | GET `/conversations?module=` · GET/DELETE `/conversations/{id}` | – | own conversations only (404 otherwise) |
 | GET `/knowledge/sources` | – | corpus metadata and sources |

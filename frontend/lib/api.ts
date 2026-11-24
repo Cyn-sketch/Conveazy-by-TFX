@@ -54,6 +54,7 @@ export type Reflection = {
   escalation_signs: string[]; next_step: string;
 };
 export type BridgeResult = {
+  raw_feelings: { right_now: string; feelings: string[]; underneath: string | null; feelings_line: string } | null;
   understood_meaning: string; core_points: string[]; sender_feelings: string[]; clarifying_question: string | null;
   message: string; short_version: string | null; alternatives: { style: string; text: string }[];
   why_this_works: { choice: string; reason: string; grounded_in: "their_profile" | "evidence" | "general" }[];

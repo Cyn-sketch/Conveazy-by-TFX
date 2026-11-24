@@ -289,8 +289,55 @@ def _fragments(text: str) -> list[str]:
     return [p.strip(" .,-") for p in parts if len(p.strip(" .,-")) > 2]
 
 
+_RAW = [  # (signal regex, raw word, readout fragment)
+    (r"[A-Z]{4,}|!{2,}|\bhate\b|\bsick of\b|\bfurious\b|\bpissed\b", "furious", "you're furious"),
+    (r"guess|what'?s going on|went quiet|go quiet|silent|ignor|left on read|no reply", "shut out", "you feel shut out, like you're left guessing"),
+    (r"\bagain\b|every time|keeps? happening|same thing", "worn down", "this has happened enough times that you're worn down by it"),
+    (r"drained|tired|exhausted|worn out|work was bad|bad day", "running on empty", "you're running on empty"),
+    (r"you (always )?think I'?m|you assume|misunderst", "misread", "you feel misread, like the way you're seen isn't who you are"),
+    (r"alone|lonely", "lonely", "you feel alone in this"),
+    (r"sorry|my fault|my bad", "guilty", "part of you feels guilty"),
+    (r"scared|afraid|lose you|leave me|losing", "scared", "you're scared"),
+    (r"hurt|stung|cried|crying", "hurt", "you're hurt"),
+]
+
+
+def _raw_feelings(scraps: str, intensity: int | None) -> dict:
+    hits = [(w, r) for pat, w, r in _RAW if re.search(pat, scraps, re.I if pat[0] != "[" else 0)]
+    words = [w for w, _ in hits]
+    wants_us = bool(re.search(r"want us|love you|miss you|care about|us ok", scraps, re.I))
+    not_fight = bool(re.search(r"not trying to fight|don'?t want to fight", scraps, re.I))
+    if not hits:
+        right_now = "It's hard to read a strong feeling from these few words. Something is clearly sitting with you, though, or you wouldn't be writing."
+        line = "I'm not sure how to say how I feel, but this matters to me."
+        return {"right_now": right_now, "feelings": ["unsettled"], "underneath": None, "feelings_line": line}
+    parts = [r for _, r in hits[:3]]
+    right_now = " ".join(x[0].upper() + x[1:] + "." for x in parts)
+    if intensity:
+        right_now += f" You checked in at {intensity}/10, so this is loud inside you."
+    underneath = None
+    if ("furious" in words or "worn down" in words) and ("shut out" in words or "scared" in words):
+        underneath = "Under the anger there's fear: that the silence means something is slipping away."
+        words.append("scared of losing this")
+    elif "running on empty" in words and "misread" in words:
+        underneath = "Under the tiredness there's hurt at being misread, and a real wish to be understood."
+    elif wants_us:
+        underneath = "Under all of it, you want the two of you to be okay."
+    if not_fight:
+        right_now += " You're not looking for a fight. You want to be let in."
+    raw = {"furious": "really angry", "shut out": "shut out", "worn down": "worn down", "running on empty": "completely drained",
+           "misread": "misunderstood", "lonely": "alone", "guilty": "guilty", "scared": "scared", "hurt": "hurt"}
+    named = [raw[w] for w in words if w in raw][:2]
+    line = "Honestly, I'm " + " and ".join(named) + " right now"
+    if underneath and "fear" in underneath:
+        line += ", and under that I'm scared"
+    line += "."
+    return {"right_now": right_now, "feelings": words[:6], "underneath": underneath, "feelings_line": line}
+
+
 def _bridge(p: dict) -> dict:
-    scraps: str = _expand(p["scraps"])
+    raw_scraps: str = p["scraps"]
+    scraps: str = _expand(raw_scraps)
     name = p.get("recipient_name") or "your partner"
     prof: dict = p.get("recipient_profile") or {}
     signal: dict | None = p.get("recipient_signal")
@@ -321,8 +368,11 @@ def _bridge(p: dict) -> dict:
     if len(scraps.split()) < 5:
         clarify = f"Can you add a bit more about what happened, or what you'd like from {name}?"
 
+    rawf = _raw_feelings(raw_scraps, p.get("sender_intensity"))
     body = []
-    if feel:
+    if p.get("include_feelings"):
+        body.append(rawf["feelings_line"])
+    elif feel:
         body.append(f"I've been feeling {feel}.")
     body += [pt + "." for pt in points]
     why, avoided = [], []
@@ -372,6 +422,7 @@ def _bridge(p: dict) -> dict:
         short = "Hey. There's something I want to talk about, but it's not urgent and I'm not going anywhere. Whenever you're ready."
         timing = f"{name} checked in at {signal['intensity']}/10 ({signal['feeling']}) in the last few hours. You might send the short version now and the full message once things feel calmer."
     return {
+        "raw_feelings": rawf,
         "understood_meaning": meaning,
         "core_points": points,
         "sender_feelings": feelings,

@@ -12,7 +12,7 @@ One partner finds it hard to put feelings into words. The other may feel things 
 
 | Module | What it does |
 |---|---|
-| **Say it to them** (main) | Scraps → "Is this what you mean?" → a message shaped by the recipient's own profile. It explains each choice (from their profile, from the sources, or general), what was left out, and what was kept true. If the recipient opts in and checked in at 7/10 or higher, it adds a short version and a timing nudge |
+| **Say it to them** (main) | Scraps → a raw, private read of what you are feeling right now (optionally added to the message) → "Is this what you mean?" → a message shaped by the recipient's own profile. It explains each choice (from their profile, from the sources, or general), what was left out, and what was kept true. If the recipient opts in and checked in at 7/10 or higher, it adds a short version and a timing nudge |
 | About me profiles | Each partner writes about themselves: how they feel, triggers, what calms them, how they express themselves, and diagnoses they choose to share. Every answer has its own switches |
 | Auth & onboarding | Email + password (argon2id), httpOnly session cookie, 3-step onboarding with care acknowledgement and consents |
 | Profiles | Ten communication-preference answers, each with its own "Share with partner" and "Let AI use this" switches (both off by default) |
@@ -75,7 +75,7 @@ Frontend: `CONVEAZY_API_URL` (default `http://127.0.0.1:8000`), used by the `/ap
 ## Tests
 
 ```bash
-cd backend && pytest -q                 # 42 tests: auth, permissions, privacy boundaries, encryption at rest,
+cd backend && pytest -q                 # 44 tests: auth, permissions, privacy boundaries, encryption at rest,
                                         # consent, retention, AI contract validation, citation enforcement,
                                         # safety screens, rate limiting, error handling
 cd frontend && npm run typecheck && npm run build

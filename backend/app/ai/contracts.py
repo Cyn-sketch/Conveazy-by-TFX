@@ -90,7 +90,16 @@ class Avoided(BaseModel):
     because: str = Field(max_length=500)
 
 
+class RawFeelings(BaseModel):
+    """Private to the writer: an unfiltered read of what they seem to feel right now."""
+    right_now: str = Field(max_length=900)
+    feelings: list[str] = Field(default_factory=list, max_length=8)
+    underneath: str | None = Field(default=None, max_length=500)
+    feelings_line: str = Field(max_length=500)  # first-person, honest, sendable
+
+
 class BridgeResult(BaseModel):
+    raw_feelings: RawFeelings | None = None
     understood_meaning: str = Field(max_length=1500)
     core_points: list[str] = Field(default_factory=list, max_length=6)
     sender_feelings: list[str] = Field(default_factory=list, max_length=6)

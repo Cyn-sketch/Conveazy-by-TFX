@@ -122,6 +122,7 @@ try {
   await b.fill("#scraps", "work was bad. didnt reply cuz i was drained not cuz of u\nyou always think im mad\ni want us ok");
   await b.click("button:has-text('Understand me')");
   await b.getByText("Here's what I think you're trying to say").waitFor();
+  assert(await visible(b, "What you're feeling right now"), "raw feelings read shown to the writer");
   await shot(b, "10-bridge-confirm-mobile");
   await b.click("button:has-text('Yes, that')");
   await b.getByText("Your message to Asha").waitFor();

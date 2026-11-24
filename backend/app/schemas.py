@@ -90,4 +90,5 @@ class ReflectIn(BaseModel):
 class BridgeIn(BaseModel):
     scraps: str = Field(min_length=1, max_length=4000)
     confirmed_meaning: str | None = Field(default=None, max_length=1500)
+    include_feelings: bool = False
     save: bool = False

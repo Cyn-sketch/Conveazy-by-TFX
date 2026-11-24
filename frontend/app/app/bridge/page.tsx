@@ -16,6 +16,7 @@ export default function Bridge() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<"full" | "short" | number>("full");
+  const [includeFeelings, setIncludeFeelings] = useState(true);
 
   useEffect(() => { api<{ partner?: { name: string } }>("/relationship").then((r) => setPartner(r.partner?.name ?? null)).catch(() => {}); }, []);
   const who = partner ?? "your partner";
@@ -23,7 +24,7 @@ export default function Bridge() {
   async function call(confirmed: string | null) {
     setBusy(true); setError(null);
     try {
-      const r = await api<BridgeEnvelope>("/bridge", { method: "POST", json: { scraps, confirmed_meaning: confirmed } });
+      const r = await api<BridgeEnvelope>("/bridge", { method: "POST", json: { scraps, confirmed_meaning: confirmed, include_feelings: confirmed ? includeFeelings : false } });
       setRes(r); setMeaning(r.result?.understood_meaning ?? "");
       setStage(r.status !== "ok" ? "message" : confirmed ? "message" : "confirm"); setTab(r.result?.short_version ? "short" : "full"); setEditing(false);
     } catch (e) { setError(isApiError(e) ? e.message : "Something went wrong."); }
@@ -55,6 +56,18 @@ export default function Bridge() {
 
         {res?.status === "crisis" && res.crisis && <CrisisCard crisis={res.crisis} />}
         {res?.status === "declined" && <Notice>{res.notice}</Notice>}
+
+        {stage === "confirm" && r?.raw_feelings && <section className="rounded-xl2 border border-clay/30 bg-clay/5 p-5 sm:p-6">
+          <p className="eyebrow mb-2">What you&apos;re feeling right now · only you see this</p>
+          <p className="font-serif text-[19px] leading-snug">{r.raw_feelings.right_now}</p>
+          {r.raw_feelings.underneath && <p className="mt-3 font-serif text-[17px] italic leading-snug text-ink/80">{r.raw_feelings.underneath}</p>}
+          <ul className="mt-4 flex flex-wrap gap-2">{r.raw_feelings.feelings.map((f) => <li key={f} className="rounded-full bg-clay/10 px-3 py-1 text-sm text-clay">{f}</li>)}</ul>
+          <label className="mt-5 flex cursor-pointer items-start gap-3 text-sm">
+            <input type="checkbox" className="mt-0.5 h-4 w-4 accent-[rgb(var(--ink))]" checked={includeFeelings} onChange={(e) => setIncludeFeelings(e.target.checked)} />
+            <span>Put how I feel in the message: <em className="font-serif text-[15px]">&ldquo;{r.raw_feelings.feelings_line}&rdquo;</em></span>
+          </label>
+          <p className="mt-3 text-xs text-muted">This is a read of your words, not a verdict. If it&apos;s off, fix the meaning below and say how you really feel.</p>
+        </section>}
 
         {stage === "confirm" && r && <section className="space-y-4">
           <div className="flex items-center justify-between"><p className="eyebrow">Here&apos;s what I think you&apos;re trying to say</p><ModeBadge live={res!.live} /></div>
