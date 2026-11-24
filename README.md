@@ -4,10 +4,16 @@
 
 CONVEAZY helps couples understand each other, especially when one or both partners live with emotional dysregulation, anxiety, depression, BPD, hormonal health conditions such as PCOS, or simply different communication styles. It is a two-sided bridge. It is not therapy, diagnosis or a referee.
 
-## What's in Phase 1 (built)
+## The core idea
+
+One partner finds it hard to put feelings into words. The other may feel things intensely and be easily triggered by silence, vagueness or blame. **Say it to them** sits between them: the sender types rough scraps, CONVEAZY plays back what it thinks they mean and asks them to confirm, then writes a message for *this* recipient. It uses the recipient's own "About me" profile (triggers, what calms them, any diagnoses they chose to share) and cited sources (APA, DSM-5-TR summaries, NIMH, NHS). It changes how something is said, never what is meant.
+
+## What's built
 
 | Module | What it does |
 |---|---|
+| **Say it to them** (main) | Scraps → "Is this what you mean?" → a message shaped by the recipient's own profile. It explains each choice (from their profile, from the sources, or general), what was left out, and what was kept true. If the recipient opts in and checked in at 7/10 or higher, it adds a short version and a timing nudge |
+| About me profiles | Each partner writes about themselves: how they feel, triggers, what calms them, how they express themselves, and diagnoses they choose to share. Every answer has its own switches |
 | Auth & onboarding | Email + password (argon2id), httpOnly session cookie, 3-step onboarding with care acknowledgement and consents |
 | Profiles | Ten communication-preference answers, each with its own "Share with partner" and "Let AI use this" switches (both off by default) |
 | Shared space | Single-use invite codes; either partner can end it at any time |
@@ -69,7 +75,7 @@ Frontend: `CONVEAZY_API_URL` (default `http://127.0.0.1:8000`), used by the `/ap
 ## Tests
 
 ```bash
-cd backend && pytest -q                 # 36 tests: auth, permissions, privacy boundaries, encryption at rest,
+cd backend && pytest -q                 # 42 tests: auth, permissions, privacy boundaries, encryption at rest,
                                         # consent, retention, AI contract validation, citation enforcement,
                                         # safety screens, rate limiting, error handling
 cd frontend && npm run typecheck && npm run build
@@ -94,7 +100,9 @@ BASE_URL=http://localhost:3000 SHOTS=./e2e/shots npm run e2e
 - No email verification or password reset yet. No Alembic migrations yet.
 - Mock rewrites are template-based and read stiffly. Real quality needs a live provider.
 - Live OpenAI and Gemini paths are implemented but untested against real keys in this build.
-- Conflict Decoder, the knowledge library UI and YouTube are Phase 2.
+- Conflict Decoder and the full knowledge library UI are Phase 2. YouTube channels (`backend/app/ai/knowledge/youtube.json`) are a candidate list marked `verified: false`. Links are YouTube searches, so no channel handle is guessed. Verify credentials independently and with the YouTube Data API before marking them verified.
+- DSM-5-TR is used only as short paraphrases for explanation, never quoted and never used to diagnose. Condition-specific evidence is used only when the recipient disclosed that condition themselves.
+- The mock bridge expands texting shorthand and reorders scraps, but it can't truly understand them. Real "understanding" needs a live provider.
 
 ## Brand
 

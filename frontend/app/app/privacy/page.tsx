@@ -7,7 +7,7 @@ import { api, isApiError } from "@/lib/api";
 
 type Privacy = {
   retention_days: number; save_history: boolean;
-  consents: { terms_and_care: boolean; ai_processing: boolean; model_training: boolean };
+  consents: { terms_and_care: boolean; ai_processing: boolean; model_training: boolean; share_checkin_signal: boolean };
   partner_can_see: { profile_fields: string[] };
   consent_history: { kind: string; granted: boolean; at: string }[];
 };
@@ -45,6 +45,7 @@ export default function PrivacyPage() {
 
       <section className="card divide-y divide-line py-1">
         <Row title="AI processing" body="Needed for the Translator, Partner and Myself modules. Turning it off disables them." on={p.consents.ai_processing} onChange={(v) => update({ ai_processing: v })} />
+        <Row title="Let my partner's messages adapt to how I'm doing" body="Shares only the feeling and intensity of your check-in from the last 6 hours with your partner's AI, never your note. Your partner doesn't see it, but the message they get may be shorter and gentler when you're at 7/10 or above." on={p.consents.share_checkin_signal} onChange={(v) => update({ share_checkin_signal: v })} />
         <Row title="Save my history" body="Keep conversations and reflections (encrypted) in your private space." on={p.save_history} onChange={(v) => update({ save_history: v })} />
         <Row title="Use anonymised data to improve CONVEAZY" body="Off unless you turn it on. Intimate content and mental-health information are never used for training without this." on={p.consents.model_training} onChange={(v) => update({ model_training: v })} />
         <label className="flex items-center justify-between gap-4 py-4"><span className="font-medium">Delete history older than</span>

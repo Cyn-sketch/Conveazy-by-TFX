@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from pydantic import BaseModel, ValidationError
 
-from .contracts import PartnerAnswer, ReflectionResult, TranslatorResult
+from .contracts import BridgeResult, PartnerAnswer, ReflectionResult, TranslatorResult
 from .knowledge.retriever import get_retriever
 from .prompts import load_prompt
 from .providers import LLMProvider, LLMRequest, ProviderError
@@ -21,6 +22,7 @@ _CONTRACTS: dict[str, type[BaseModel]] = {
     "translator": TranslatorResult,
     "partner": PartnerAnswer,
     "myself": ReflectionResult,
+    "bridge": BridgeResult,
 }
 
 DECLINE_MANIPULATION = (
@@ -156,3 +158,44 @@ def reflect(provider: LLMProvider, *, situation: str, interpretation: str | None
     system, user, ver = _compose("myself", context, None, body)
     parsed = _call(provider, LLMRequest("myself", system, user, payload), ReflectionResult)
     return AIResult("myself", "ok", provider.live, provider.name, ver, parsed.model_dump(), crisis=crisis, safety=flags)
+
+
+_CONDITIONS = {"bpd": r"\bbpd\b|borderline", "depression": r"depress|\bmdd\b", "gad": r"\bgad\b|anxiety", "pcos": r"pcos|pmos|polycystic"}
+
+
+def disclosed_conditions(text: str) -> set[str]:
+    return {k for k, pat in _CONDITIONS.items() if re.search(pat, text or "", re.I)}
+
+
+def bridge(provider: LLMProvider, *, scraps: str, confirmed_meaning: str | None, context: dict,
+           recipient_name: str, recipient_profile: dict, recipient_signal: dict | None) -> AIResult:
+    """Sender's rough scraps -> confirmed meaning -> a message written for this recipient."""
+    early, flags, crisis = _precheck("bridge", provider, scraps, confirmed_meaning)
+    if early:
+        return early
+    retriever = get_retriever()
+    disclosed = disclosed_conditions(recipient_profile.get("Diagnoses or health context I choose to share (optional)", ""))
+    wants_anger = bool(re.search(r"rage|anger|angry|furious", " ".join(recipient_profile.values()) + " " + scraps, re.I))
+    query = " ".join([scraps, " ".join(disclosed), "anger" if wants_anger else "",
+                      recipient_profile.get("What can trigger me", "")])
+    # Never pull condition-specific evidence for a condition the recipient didn't disclose themselves.
+    hits = [h for h in retriever.search(query, k=8, topics=sorted(disclosed) + (["anger"] if wants_anger else []))
+            if not (set(h.doc.topics) & set(_CONDITIONS)) or (set(h.doc.topics) & disclosed)]
+    # Prefer passages about how words land (abandonment, anger, regulation) over general condition facts.
+    landing = {"bpd", "anger", "attachment_reassurance", "emotional_regulation", "communication"}
+    hits = sorted(hits, key=lambda h: (-len(set(h.doc.topics) & landing), -h.score))[:3]
+    allowed = [h.doc.id for h in hits]
+    payload = {"scraps": scraps, "confirmed_meaning": confirmed_meaning, "recipient_name": recipient_name,
+               "recipient_profile": recipient_profile, "recipient_signal": recipient_signal, "source_ids": allowed}
+    body = "RECIPIENT CHECK-IN SIGNAL (shared with consent; may be null):\n" + json.dumps(recipient_signal) + \
+           "\n\nINPUT:\n" + json.dumps({"scraps": scraps, "confirmed_meaning": confirmed_meaning,
+                                         "recipient_name": recipient_name}, ensure_ascii=False)
+    system, user, ver = _compose("bridge", context, hits, body)
+    parsed = _call(provider, LLMRequest("bridge", system, user, payload), BridgeResult)
+    data = parsed.model_dump()
+    data["source_ids"] = [i for i in data["source_ids"] if i in allowed]
+    for w in data["why_this_works"]:
+        if w["grounded_in"] == "evidence" and not data["source_ids"]:
+            w["grounded_in"] = "general"
+    citations = [retriever.get(i).citation() for i in data["source_ids"]]  # type: ignore[union-attr]
+    return AIResult("bridge", "ok", provider.live, provider.name, ver, data, citations, crisis, safety=flags)

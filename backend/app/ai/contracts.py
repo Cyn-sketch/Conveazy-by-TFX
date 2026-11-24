@@ -77,3 +77,29 @@ class ReflectionResult(BaseModel):
     communication: str = Field(max_length=1500)
     escalation_signs: list[str] = Field(default_factory=list, max_length=5)
     next_step: str = Field(max_length=500)
+
+
+class Choice(BaseModel):
+    choice: str = Field(max_length=300)
+    reason: str = Field(max_length=500)
+    grounded_in: Literal["their_profile", "evidence", "general"] = "general"
+
+
+class Avoided(BaseModel):
+    pattern: str = Field(max_length=300)
+    because: str = Field(max_length=500)
+
+
+class BridgeResult(BaseModel):
+    understood_meaning: str = Field(max_length=1500)
+    core_points: list[str] = Field(default_factory=list, max_length=6)
+    sender_feelings: list[str] = Field(default_factory=list, max_length=6)
+    clarifying_question: str | None = Field(default=None, max_length=400)
+    message: str = Field(min_length=1, max_length=3000)
+    short_version: str | None = Field(default=None, max_length=800)
+    alternatives: list[Version] = Field(default_factory=list, max_length=3)
+    why_this_works: list[Choice] = Field(default_factory=list, max_length=6)
+    avoided: list[Avoided] = Field(default_factory=list, max_length=6)
+    kept_true: list[str] = Field(default_factory=list, max_length=6)
+    timing_note: str | None = Field(default=None, max_length=500)
+    source_ids: list[str] = Field(default_factory=list, max_length=5)

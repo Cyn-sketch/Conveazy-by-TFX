@@ -1,0 +1,109 @@
+{
+  "_meta": {
+    "status": "candidates pending verification",
+    "how_to_verify": "For each channel: confirm the presenter's licence or affiliation from an independent source (licensing board, university or organisation page), check that the videos are educational rather than personal opinion, record the reviewer and date, then set verified=true. Use the YouTube Data API v3 (channels.list, search.list) to fetch the channel ID and recent videos per topic. Links below are YouTube searches, so no channel handle is guessed.",
+    "created": "2026-11-24"
+  },
+  "channels": [
+    {
+      "name": "Dr. Daniel Fox",
+      "credential_claimed": "Licensed psychologist; author on personality disorders",
+      "topics": [
+        "bpd",
+        "emotional_regulation"
+      ],
+      "url": "https://www.youtube.com/results?search_query=Dr+Daniel+Fox+borderline+personality+disorder",
+      "verified": false
+    },
+    {
+      "name": "Dr. Tracey Marks",
+      "credential_claimed": "Board-certified psychiatrist",
+      "topics": [
+        "depression",
+        "gad",
+        "bpd"
+      ],
+      "url": "https://www.youtube.com/results?search_query=Dr+Tracey+Marks+psychiatrist",
+      "verified": false
+    },
+    {
+      "name": "Kati Morton",
+      "credential_claimed": "Licensed marriage and family therapist",
+      "topics": [
+        "bpd",
+        "gad",
+        "depression",
+        "relationships"
+      ],
+      "url": "https://www.youtube.com/results?search_query=Kati+Morton+therapist+borderline",
+      "verified": false
+    },
+    {
+      "name": "Therapy in a Nutshell (Emma McAdam)",
+      "credential_claimed": "Licensed marriage and family therapist",
+      "topics": [
+        "gad",
+        "emotional_regulation",
+        "anger"
+      ],
+      "url": "https://www.youtube.com/results?search_query=Therapy+in+a+Nutshell+Emma+McAdam",
+      "verified": false
+    },
+    {
+      "name": "Dr. Julie Smith",
+      "credential_claimed": "Clinical psychologist",
+      "topics": [
+        "emotional_regulation",
+        "depression",
+        "gad"
+      ],
+      "url": "https://www.youtube.com/results?search_query=Dr+Julie+Smith+clinical+psychologist",
+      "verified": false
+    },
+    {
+      "name": "Psych Hub",
+      "credential_claimed": "Mental health education organisation",
+      "topics": [
+        "bpd",
+        "depression",
+        "gad"
+      ],
+      "url": "https://www.youtube.com/results?search_query=Psych+Hub+mental+health",
+      "verified": false
+    },
+    {
+      "name": "NAMI (National Alliance on Mental Illness)",
+      "credential_claimed": "US national mental health organisation",
+      "topics": [
+        "bpd",
+        "depression",
+        "gad",
+        "supporting_partner"
+      ],
+      "url": "https://www.youtube.com/results?search_query=NAMI+National+Alliance+on+Mental+Illness",
+      "verified": false
+    },
+    {
+      "name": "The Gottman Institute",
+      "credential_claimed": "Couples research and therapy institute",
+      "topics": [
+        "communication",
+        "conflict",
+        "relationships",
+        "anger"
+      ],
+      "url": "https://www.youtube.com/results?search_query=The+Gottman+Institute",
+      "verified": false
+    },
+    {
+      "name": "Endocrine Society",
+      "credential_claimed": "Professional society of endocrinologists",
+      "topics": [
+        "pcos",
+        "hormonal_health"
+      ],
+      "url": "https://www.youtube.com/results?search_query=Endocrine+Society+PCOS",
+      "verified": false
+    }
+  ]
+}

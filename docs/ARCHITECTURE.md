@@ -68,10 +68,13 @@ All foreign keys `ON DELETE CASCADE`. Account deletion also deletes explicitly, 
 8. **Understand Myself**: guided Situation → Interpretation → Emotion (and intensity) → Need → a reflection with an evidence check, alternative interpretations, validation, a draft message (with a hand-off to the Translator), escalation signs and a next step.
 9. **Privacy**: toggle consents, retention, history; see exactly what the partner can see; export all data as JSON; sign out everywhere; delete the account (password + typed "DELETE").
 
+### Say it to them (bridge), the primary journey
+Sender types scraps → `POST /bridge` → **understood meaning** shown first → sender confirms or edits it → `POST /bridge` with `confirmed_meaning` → message for the recipient. Inputs: the recipient's entries marked shared + AI; the recipient's check-in *signal* (feeling and intensity only, last 6 h, only with their `share_checkin_signal` consent, never the note); evidence filtered so condition-specific passages appear only for conditions the recipient disclosed. Output: `BridgeResult` (understood_meaning, core_points, clarifying_question, message, short_version, alternatives, why_this_works[grounded_in], avoided, kept_true, timing_note, source_ids).
+
 ## 4. AI prompt architecture
 
 - **Files:** `backend/app/ai/prompts/*.v1.md`, with front matter `version: <module>.vN`. To change a prompt, add `v2` and change the loader. The version string is stored with every saved response (`messages.meta.prompt_version`).
-- **Layering:** `system.v1` (12 non-negotiable rules: no diagnosis, no medication advice, no certainty about others, both partners equal, no automatic attribution to a diagnosis, no excusing abuse, no manipulation, never invalidate feelings, no dependency, evidence only from EVIDENCE, personal context only from PERSONAL CONTEXT, JSON only), plus the module prompt (task framing and the exact output schema).
+- **Layering:** `system.v1` (12 non-negotiable rules; modules: translator.v1, partner.v1, myself.v1, bridge.v1: no diagnosis, no medication advice, no certainty about others, both partners equal, no automatic attribution to a diagnosis, no excusing abuse, no manipulation, never invalidate feelings, no dependency, evidence only from EVIDENCE, personal context only from PERSONAL CONTEXT, JSON only), plus the module prompt (task framing and the exact output schema).
 - **Separated blocks:** `PERSONAL CONTEXT` (consented JSON), `EVIDENCE` (retrieved passages with ids and evidence level), `CHECK-IN` (inside personal context), `INPUT` / `CONVERSATION SO FAR`.
 - **Contracts:** `TranslatorResult`, `PartnerAnswer`, `ReflectionResult` in `contracts.py`, with length caps, enumerated categories and styles, and de-duplicated versions.
 - **Defence in depth:** the prompt rules are backed by deterministic screens, so a jailbroken or misbehaving model still can't deliver a diagnosis, a dosage or a fabricated citation.

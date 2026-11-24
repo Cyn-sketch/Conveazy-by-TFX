@@ -10,7 +10,7 @@ Errors are always `{"detail": {"code": str, "message": str}}`. Interactive docs:
 | POST `/auth/logout?everywhere=bool` | – | 204 |
 | GET `/auth/me` | – | `User {id,email,display_name,pronouns,onboarded}` |
 | POST `/onboarding` | `{accept_terms_and_care:true, ai_processing, model_training?, retention_days?, save_history?, pronouns?}` | `User` · 422 `terms_required` |
-| GET/PUT `/privacy` | PUT: `{retention_days?, save_history?, ai_processing?, model_training?}` | `{retention_days, save_history, consents, partner_can_see, consent_history[]}` |
+| GET/PUT `/privacy` | PUT: `{retention_days?, save_history?, ai_processing?, model_training?, share_checkin_signal?}` | `{retention_days, save_history, consents, partner_can_see, consent_history[]}` |
 | GET `/privacy/export` | – | JSON attachment of all of *your* data |
 | DELETE `/account` | `{password, confirm:"DELETE"}` | 204 · 403 `bad_password` |
 | GET `/profile` | – | `{fields:[{key,label,value,share_with_partner,use_in_ai}]}` |
@@ -26,6 +26,8 @@ Errors are always `{"detail": {"code": str, "message": str}}`. Interactive docs:
 | POST `/translate` | `{draft, styles?[], note?, save?}` | `AIEnvelope<TranslatorResult>` |
 | POST `/partner/ask` | `{question, conversation_id?}` | `AIEnvelope<PartnerAnswer>` (+`conversation_id` if history on) |
 | POST `/myself/reflect` | `{situation, interpretation?, emotions[], needs[], intensity?, save?}` | `AIEnvelope<ReflectionResult>` |
+| POST `/bridge` | `{scraps, confirmed_meaning?, save?}` | `AIEnvelope<BridgeResult>` + `recipient{name, profile_items_used, checkin_signal}` |
+| GET `/knowledge/videos` | – | Candidate YouTube channels (`verified` flag) |
 | GET `/conversations?module=` · GET/DELETE `/conversations/{id}` | – | own conversations only (404 otherwise) |
 | GET `/knowledge/sources` | – | corpus metadata and sources |
 

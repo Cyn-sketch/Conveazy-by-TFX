@@ -19,6 +19,25 @@ const LEVEL = {
 
 type Turn = { q: string; a: AIEnvelope<PartnerAnswer> };
 type Conv = { id: string; title: string; created_at: string };
+type Channel = { name: string; credential_claimed: string; topics: string[]; url: string; verified: boolean };
+
+function Videos() {
+  const [ch, setCh] = useState<Channel[]>([]);
+  useEffect(() => { api<{ channels: Channel[] }>("/knowledge/videos").then((r) => setCh(r.channels)).catch(() => {}); }, []);
+  if (!ch.length) return null;
+  return (
+    <section className="mt-10">
+      <p className="eyebrow mb-2">Learn together on YouTube</p>
+      <p className="mb-4 text-sm text-muted">Channels from qualified clinicians and recognised organisations. Each is still being checked: credentials confirmed from an independent source, and content checked as education rather than opinion.</p>
+      <ul className="grid gap-2 sm:grid-cols-2">{ch.map((c) => (
+        <li key={c.name} className="rounded-xl border border-line bg-surface px-4 py-3 text-sm">
+          <a href={c.url} target="_blank" rel="noreferrer" className="font-medium underline decoration-line underline-offset-4">{c.name}</a>
+          <span className="block text-muted">{c.credential_claimed}</span>
+          <span className="mt-1 block text-xs text-muted">{c.topics.map((t) => t.replace("_", " ")).join(" · ")}{c.verified ? "" : " · pending check"}</span>
+        </li>))}</ul>
+    </section>
+  );
+}
 
 function Answer({ a }: { a: AIEnvelope<PartnerAnswer> }) {
   if (a.status === "crisis" && a.crisis) return <CrisisCard crisis={a.crisis} />;
@@ -98,7 +117,7 @@ export default function Partner() {
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_14rem]">
         <div className="min-w-0 max-w-read space-y-8">
           {turns.length === 0 && (
-            <div className="flex flex-wrap gap-2">{STARTERS.map((s) => <button key={s} className="chip text-left" onClick={() => ask(s)} disabled={busy}>{s}</button>)}</div>
+            <div><div className="flex flex-wrap gap-2">{STARTERS.map((s) => <button key={s} className="chip text-left" onClick={() => ask(s)} disabled={busy}>{s}</button>)}</div><Videos /></div>
           )}
           {turns.map((t, i) => (
             <div key={i} className="space-y-4">

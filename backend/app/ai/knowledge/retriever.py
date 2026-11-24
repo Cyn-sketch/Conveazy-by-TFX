@@ -46,6 +46,14 @@ _SYNONYMS = {
     "say": ["communication", "messages"],
     "support": ["supporting", "care"],
     "responsible": ["responsibility", "treatment", "boundaries"],
+    "rage": ["anger", "angry", "control"],
+    "anger": ["angry", "control"],
+    "triggered": ["anger", "abandonment"],
+    "borderline": ["bpd"],
+    "bpd": ["borderline", "abandonment"],
+    "pcos": ["hormonal", "polycystic"],
+    "depressed": ["depression"],
+    "anxiety": ["anxious", "worry", "gad"],
 }
 
 

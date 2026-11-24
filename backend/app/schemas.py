@@ -50,6 +50,7 @@ class PrivacyIn(BaseModel):
     save_history: bool | None = None
     ai_processing: bool | None = None
     model_training: bool | None = None
+    share_checkin_signal: bool | None = None
 
 
 class DeleteAccountIn(BaseModel):
@@ -84,3 +85,9 @@ class ReflectIn(BaseModel):
     needs: list[str] = Field(default_factory=list, max_length=6)
     intensity: int | None = Field(default=None, ge=1, le=10)
     save: bool = True
+
+
+class BridgeIn(BaseModel):
+    scraps: str = Field(min_length=1, max_length=4000)
+    confirmed_meaning: str | None = Field(default=None, max_length=1500)
+    save: bool = False

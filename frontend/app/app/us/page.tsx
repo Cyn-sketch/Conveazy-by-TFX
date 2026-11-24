@@ -58,8 +58,8 @@ export default function Us() {
 
   return (
     <div>
-      <PageHeader eyebrow="Us & profile" title="How each of you communicates.">
-        Your answers come from you, never from a diagnosis. Everything is private until you switch on &ldquo;Share with partner&rdquo;. The AI only uses an answer when you switch on &ldquo;Let AI use this&rdquo;.
+      <PageHeader eyebrow="About us" title="Tell CONVEAZY who you are.">
+        Write about yourself in your own words: how you feel, what triggers you, what calms you down, and any diagnoses you want it to know about. The more you share, the better it can write for you and to you. Your answers come from you, never guessed from a diagnosis. Everything is private until you switch on &ldquo;Share with partner&rdquo;. The AI only uses an answer when you switch on &ldquo;Let AI use this&rdquo;.
       </PageHeader>
 
       <section className="card mb-10 max-w-read">

@@ -53,3 +53,10 @@ export type Reflection = {
   emotions: string[]; validation: string; possible_needs: string[]; communication: string;
   escalation_signs: string[]; next_step: string;
 };
+export type BridgeResult = {
+  understood_meaning: string; core_points: string[]; sender_feelings: string[]; clarifying_question: string | null;
+  message: string; short_version: string | null; alternatives: { style: string; text: string }[];
+  why_this_works: { choice: string; reason: string; grounded_in: "their_profile" | "evidence" | "general" }[];
+  avoided: { pattern: string; because: string }[]; kept_true: string[]; timing_note: string | null; source_ids: string[];
+};
+export type BridgeEnvelope = AIEnvelope<BridgeResult> & { recipient: { name: string | null; profile_items_used: number; checkin_signal: boolean } };

@@ -5,13 +5,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..ai import engine
-from ..ai.context import build_personal_context
+from ..ai.context import PROFILE_FIELDS, _entries, build_personal_context, partner_checkin_signal, partner_of
 from ..ai.knowledge.retriever import corpus_meta, get_retriever
 from ..ai.providers import get_provider
 from ..db import get_db
 from ..deps import ai_rate_limit, current_user
 from ..models import Conversation, Message, User
-from ..schemas import AskIn, ReflectIn, TranslateIn
+from ..schemas import AskIn, BridgeIn, ReflectIn, TranslateIn
 from ..security import decrypt, encrypt
 
 router = APIRouter(prefix="/api", tags=["ai"])
@@ -127,3 +127,32 @@ def delete_conversation(conv_id: str, db: Session = Depends(get_db), user: User 
         raise HTTPException(404, detail={"code": "not_found", "message": "Conversation not found."})
     db.delete(c)
     db.commit()
+
+
+@router.post("/bridge")
+def bridge(body: BridgeIn, db: Session = Depends(get_db), user: User = Depends(ai_rate_limit)):
+    """Say it to them: understand the sender's scraps, then write for the recipient's own profile."""
+    partner = partner_of(db, user.id)
+    recipient_profile = _entries(db, partner.id, require_shared=True) if partner else {}
+    signal = partner_checkin_signal(db, partner) if partner else None
+    ctx = build_personal_context(db, user)
+    r = engine.bridge(get_provider(), scraps=body.scraps, confirmed_meaning=body.confirmed_meaning, context=ctx,
+                      recipient_name=partner.display_name if partner else "your partner",
+                      recipient_profile=recipient_profile, recipient_signal=signal)
+    out = r.to_dict()
+    out["recipient"] = {"name": partner.display_name if partner else None, "profile_items_used": len(recipient_profile),
+                        "checkin_signal": signal is not None}
+    if body.save and user.save_history and r.status == "ok":
+        conv = Conversation(user_id=user.id, module="bridge", title=body.scraps[:80])
+        db.add(conv)
+        db.flush()
+        _save(db, conv, body.scraps, r)
+    return out
+
+
+@router.get("/knowledge/videos")
+def videos(user: User = Depends(current_user)):
+    import json as _json
+    from pathlib import Path
+    data = _json.loads((Path(__file__).resolve().parent.parent / "ai" / "knowledge" / "youtube.json").read_text())
+    return data

@@ -254,3 +254,137 @@ class MockProvider:
             "escalation_signs": ["Replaying the moment again and again", "Drafting messages in your head that start with 'you always'", "Feeling an urgent need to resolve it right now"],
             "next_step": "If your intensity is 7 or higher, take twenty minutes for something calming before you send anything. Otherwise, try the message above in the Translator.",
         }
+
+
+# ---------- Bridge: "Say it to them" ----------
+_ABANDON = re.compile(r"silen|ignor|no reply|not repl|distance|leav|abandon|go(ing)? quiet|cold|withdraw", re.I)
+_BLAME = re.compile(r"blam|critici|you always|you never|fault|yell|shout|tone|judg", re.I)
+_VAGUE = re.compile(r"vague|uncertain|unclear|mixed signal|\bok\b|\bfine\b|one.word", re.I)
+
+
+_SHORTHAND = [
+    (r"\bcuz\b|\bcoz\b|\bbc\b", "because"), (r"\bu\b", "you"), (r"\bur\b", "your"), (r"\bim\b", "I'm"),
+    (r"\bi\b", "I"), (r"\bive\b", "I've"), (r"\bdidnt\b", "didn't"), (r"\bdont\b", "don't"), (r"\bcant\b", "can't"),
+    (r"\bwont\b", "won't"), (r"\bisnt\b", "isn't"), (r"\bwanna\b", "want to"), (r"\bgonna\b", "going to"),
+    (r"\brn\b", "right now"), (r"\bpls\b|\bplz\b", "please"), (r"\btbh\b", "honestly"), (r"\bidk\b", "I don't know"),
+    (r"\bok\b", "okay"), (r"\bthats\b", "that's"), (r"\bwasnt\b", "wasn't"),
+]
+_SENDER_FEELINGS = {
+    "hurt": ["hurt", "stung"], "angry": ["i'm angry", "i'm mad", "i'm pissed", "i'm furious", "i was angry", "i was mad"],
+    "exhausted": ["tired", "exhausted", "drained", "worn out"], "anxious": ["anxious", "worried", "scared"],
+    "sad": ["sad", "upset", "crying"], "frustrated": ["frustrat", "fed up"], "lonely": ["lonely", "alone"],
+    "stressed": ["work was bad", "stress", "bad day", "overwhelm"], "sorry": ["sorry", "my bad", "apolog"],
+    "loving": ["love you", "miss you", "want us", "care about"],
+}
+
+
+def _expand(text: str) -> str:
+    for pat, rep in _SHORTHAND:
+        text = re.sub(pat, rep, text, flags=re.I)
+    return text
+
+
+def _fragments(text: str) -> list[str]:
+    parts = re.split(r"[\n;]+|(?<=[.!?])\s+|\s+-\s+|,\s*(?:and|but)\s+|\.\.\.", text)
+    return [p.strip(" .,-") for p in parts if len(p.strip(" .,-")) > 2]
+
+
+def _bridge(p: dict) -> dict:
+    scraps: str = _expand(p["scraps"])
+    name = p.get("recipient_name") or "your partner"
+    prof: dict = p.get("recipient_profile") or {}
+    signal: dict | None = p.get("recipient_signal")
+    docs = [d for d in (get_retriever().get(i) for i in p.get("source_ids", [])) if d]
+    triggers = prof.get("What can trigger me", "")
+    calms = prof.get("What calms me down", "")
+    reassure = prof.get("What reassurance looks like to me", "")
+
+    points, flags = [], []
+    for frag in _fragments(scraps)[:6]:
+        soft, f, _ = _soften(frag)
+        flags += f
+        soft = re.sub(r"\s+not because", ", not because", soft.rstrip("."))
+        if soft:
+            points.append(soft[0].upper() + soft[1:])
+    # Only the sender's own feelings: ignore what they say the partner thinks ("you think I'm mad").
+    own = " ".join(f for f in _fragments(scraps) if not re.search(r"\byou\b[^.]*\b(think|thought|assume|believe|feel)", f, re.I))
+    feelings = _detect(_SENDER_FEELINGS, own)
+    needs = [n for n in _detect(_NEEDS, own) if n != "acknowledgement" or "sorry" not in feelings]
+    feel = " and ".join(f for f in feelings[:2] if f not in ("sorry", "loving"))
+
+    meaning = p.get("confirmed_meaning") or (
+        f"You're trying to tell {name}: " + "; ".join(pt if re.match(r"I\b", pt) else pt[0].lower() + pt[1:] for pt in points)
+        + (f". Underneath it, you're feeling {feel}" if feel else "")
+        + (f", and you'd like {needs[0]}" if needs else "") + "."
+    )
+    clarify = None
+    if len(scraps.split()) < 5:
+        clarify = f"Can you add a bit more about what happened, or what you'd like from {name}?"
+
+    body = []
+    if feel:
+        body.append(f"I've been feeling {feel}.")
+    body += [pt + "." for pt in points]
+    why, avoided = [], []
+    reassurance_line = None
+    if _ABANDON.search(triggers) or "reassurance" in needs:
+        reassurance_line = "I'm not going anywhere. I'm telling you this because I want us to be okay."
+        why.append({"choice": "Says clearly that you're staying", "reason": f"{name} listed this as a trigger: \"{triggers[:140]}\". Saying plainly that you're staying leaves no gap for the worst case to fill.", "grounded_in": "their_profile"})
+        avoided.append({"pattern": "Ending on something open or going quiet after sending", "because": "Silence after a hard message can feel like rejection."})
+    if _BLAME.search(triggers) or flags:
+        why.append({"choice": "Uses 'I' sentences instead of 'you' sentences", "reason": "It describes your experience instead of their character, so there's nothing to defend against." + (f" {name} listed blame or criticism as a trigger." if _BLAME.search(triggers) else ""), "grounded_in": "their_profile" if _BLAME.search(triggers) else "general"})
+    for f in flags[:3]:
+        avoided.append({"pattern": f"\"{f['phrase']}\"", "because": f["how_it_may_land"]})
+    if _VAGUE.search(triggers):
+        why.append({"choice": "Spells things out instead of hinting", "reason": f"{name} mentioned that short or vague replies are hard, so nothing is left to guess.", "grounded_in": "their_profile"})
+    calm_line = None
+    if calms:
+        calm_line = f"Whenever you're ready, we can talk. I know {calms[0].lower() + calms[1:].rstrip('.')} can help, and I'm happy to do that."
+        why.append({"choice": f"Ends with what helps {name}", "reason": f"In {name}'s own words, this calms them down: \"{calms[:120]}\".", "grounded_in": "their_profile"})
+    if reassure:
+        why.append({"choice": "Leaves room for the reassurance they asked for", "reason": f"For {name}, reassurance looks like: \"{reassure[:120]}\".", "grounded_in": "their_profile"})
+    for d in docs[:2]:
+        if "bpd" in d.topics:
+            why.append({"choice": "Steady, warm wording with no ultimatums", "reason": "Clinical sources describe how perceived rejection or abandonment can land very hard for people living with BPD. This is general context, not a statement about them.", "grounded_in": "evidence"})
+        elif "anger" in d.topics:
+            why.append({"choice": "Calm and specific, nothing to push against", "reason": "The APA notes that blaming or escalating words tend to feed anger, while calm, specific language is easier to hear.", "grounded_in": "evidence"})
+        elif "gad" in d.topics:
+            why.append({"choice": "No open loops", "reason": "When worry is part of someone's life, unclear messages leave space for it to fill in the worst case.", "grounded_in": "evidence"})
+
+    seen, deduped = set(), []
+    for w in why:
+        if w["choice"] not in seen:
+            seen.add(w["choice"])
+            deduped.append(w)
+    why = deduped
+    if "loving" in feelings and not any("love" in pt.lower() for pt in points):
+        body.append("I love you.")
+    msg = ["Hey, I'm not great at putting this into words, so bear with me."] + body
+    if reassurance_line:
+        msg.append(reassurance_line)
+    if needs and needs[0] != "reassurance":
+        msg.append(f"What I'd really like is {needs[0]}.")
+    msg.append(calm_line or "Can we talk about it when it feels right for you?")
+    message = " ".join(msg)
+
+    short = timing = None
+    if signal and signal.get("intensity", 0) >= 7:
+        short = "Hey. There's something I want to talk about, but it's not urgent and I'm not going anywhere. Whenever you're ready."
+        timing = f"{name} checked in at {signal['intensity']}/10 ({signal['feeling']}) in the last few hours. You might send the short version now and the full message once things feel calmer."
+    return {
+        "understood_meaning": meaning,
+        "core_points": points,
+        "sender_feelings": feelings,
+        "clarifying_question": clarify,
+        "message": message,
+        "short_version": short,
+        "alternatives": [{"style": "direct", "text": " ".join(body + ["Can we talk tonight?"]) or message}],
+        "why_this_works": why[:6] or [{"choice": "Kept it simple and in your own words", "reason": f"{name} hasn't shared a profile yet, so this follows general guidance.", "grounded_in": "general"}],
+        "avoided": avoided[:6],
+        "kept_true": ["Everything you said you feel"] + [f"Your point: {pt}" for pt in points[:3]],
+        "timing_note": timing,
+        "source_ids": [d.id for d in docs[:2]],
+    }
+
+
+MockProvider._bridge = staticmethod(_bridge)  # type: ignore[attr-defined]

@@ -9,11 +9,12 @@ import { api, type User } from "@/lib/api";
 
 const NAV = [
   { href: "/app", label: "Home", short: "Home" },
+  { href: "/app/bridge", label: "Say it to them", short: "Say it" },
   { href: "/app/checkin", label: "Check in", short: "Check in" },
   { href: "/app/translate", label: "Message Translator", short: "Translate" },
   { href: "/app/partner", label: "Understand My Partner", short: "Partner" },
   { href: "/app/myself", label: "Understand Myself", short: "Myself" },
-  { href: "/app/us", label: "Us & profile", short: "Us" },
+  { href: "/app/us", label: "About us", short: "Us" },
   { href: "/app/privacy", label: "Privacy & data", short: "Privacy" },
 ];
 
@@ -63,7 +64,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-10 flex justify-around border-t border-line bg-paper/95 px-1 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur lg:hidden">
-          {NAV.filter((n) => n.href !== "/app/privacy").map((n) => (
+          {NAV.filter((n) => !["/app/privacy", "/app/myself"].includes(n.href)).map((n) => (
             <Link key={n.href} href={n.href} aria-current={active(n.href) ? "page" : undefined}
               className={`rounded-lg px-2 py-1.5 text-[11px] font-medium ${active(n.href) ? "text-ink" : "text-muted"}`}>{n.short}</Link>
           ))}

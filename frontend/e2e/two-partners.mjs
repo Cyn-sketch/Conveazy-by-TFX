@@ -27,7 +27,7 @@ async function signup(browser, name, mobile = false) {
   await page.fill("#pr", name === "Asha" ? "she/her" : "he/him");
   await page.click("button:has-text('Enter my space')");
   await page.waitForURL("**/app");
-  await page.getByText("How are you, right now?").waitFor();
+  await page.getByText("What do you want to say?").waitFor();
   return page;
 }
 
@@ -105,6 +105,31 @@ try {
   assert(await b.getByText("A two-word text when you're running late").isVisible(), "B sees what A chose to share");
   assert(!(await b.getByText("PRIVATE-ONLY").isVisible()), "B cannot see A's private profile answer");
   await shot(b, "06-us-mobile");
+
+  console.log("Say it to her (bridge)");
+  // A (her) fills the core 'About me' fields and opts in to the check-in signal.
+  await a.goto(`${BASE}/app/us`);
+  await share(a, "my_triggers", "Silence or one-word replies, feeling ignored, being blamed", true);
+  await share(a, "what_calms_me", "A voice note and a hug", true);
+  await share(a, "self_disclosed_context", "I have BPD, GAD, depression and PCOS", true);
+  await a.goto(`${BASE}/app/privacy`);
+  await a.getByText("Let my partner's messages adapt").click();
+  await a.goto(`${BASE}/app/checkin`);
+  await a.click("button:has-text('angry')"); await a.locator("#int").fill("9");
+  await a.click("button:has-text('space')"); await a.click("button:has-text('Take a break')"); await a.click("button:has-text('Save check-in')");
+  await a.getByText("Thank you for noticing.").waitFor();
+  await b.goto(`${BASE}/app/bridge`);
+  await b.fill("#scraps", "work was bad. didnt reply cuz i was drained not cuz of u\nyou always think im mad\ni want us ok");
+  await b.click("button:has-text('Understand me')");
+  await b.getByText("Here's what I think you're trying to say").waitFor();
+  await shot(b, "10-bridge-confirm-mobile");
+  await b.click("button:has-text('Yes, that')");
+  await b.getByText("Your message to Asha").waitFor();
+  assert(await visible(b, "Short, for now"), "short version offered because her check-in is 9/10");
+  assert(await visible(b, "From their profile"), "message choices grounded in her own profile");
+  assert(!(await b.getByText("SECRET").isVisible()), "her check-in note never reaches him");
+  await b.click("button:has-text('Full message')");
+  await shot(b, "11-bridge-message-mobile");
 
   console.log("Privacy boundaries");
   await b.goto(`${BASE}/app/partner`);

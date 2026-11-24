@@ -43,10 +43,10 @@ def get_privacy(db: Session = Depends(get_db), user: User = Depends(current_user
     return {
         "retention_days": user.retention_days,
         "save_history": user.save_history,
-        "consents": {k: c.get(k, False) for k in ("terms_and_care", "ai_processing", "model_training")},
+        "consents": {k: c.get(k, False) for k in ("terms_and_care", "ai_processing", "model_training", "share_checkin_signal")},
         "partner_can_see": {
             "profile_fields": list(shared),
-            "checkins": False, "drafts": False, "reflections": False, "conversations": False,
+            "checkins": False, "checkin_signal_to_partner_ai": c.get("share_checkin_signal", False), "drafts": False, "reflections": False, "conversations": False,
         },
         "consent_history": [
             {"kind": x.kind, "granted": x.granted, "at": x.created_at.isoformat(), "policy_version": x.policy_version}
@@ -62,7 +62,7 @@ def put_privacy(body: PrivacyIn, db: Session = Depends(get_db), user: User = Dep
     if body.save_history is not None:
         user.save_history = body.save_history
     current = consent_state(db, user.id)
-    for kind in ("ai_processing", "model_training"):
+    for kind in ("ai_processing", "model_training", "share_checkin_signal"):
         val = getattr(body, kind)
         if val is not None and current.get(kind) != val:
             _record(db, user.id, kind, val)

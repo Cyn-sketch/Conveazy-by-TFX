@@ -15,6 +15,10 @@ from ..models import CheckIn, ProfileEntry, RelationshipMember, User
 from ..security import decrypt
 
 PROFILE_FIELDS: dict[str, str] = {
+    "about_me": "About me, in my own words",
+    "my_triggers": "What can trigger me",
+    "what_calms_me": "What calms me down",
+    "how_i_express_myself": "How I express myself (and where I struggle)",
     "communication_style": "How I tend to communicate",
     "reassurance_looks_like": "What reassurance looks like to me",
     "feel_dismissed_when": "I feel dismissed when",
@@ -24,7 +28,7 @@ PROFILE_FIELDS: dict[str, str] = {
     "receive_affection": "How I like to receive affection",
     "overwhelmed_helps": "When I'm overwhelmed, this helps",
     "overwhelmed_doesnt_help": "When I'm overwhelmed, this doesn't help",
-    "self_disclosed_context": "Health or life context I choose to share (optional)",
+    "self_disclosed_context": "Diagnoses or health context I choose to share (optional)",
 }
 
 
@@ -50,6 +54,24 @@ def _entries(db: Session, user_id: str, *, require_shared: bool) -> dict[str, st
         if val and e.key in PROFILE_FIELDS:
             out[PROFILE_FIELDS[e.key]] = val
     return out
+
+
+def latest_checkin(db: Session, user_id: str, hours: int = 6) -> CheckIn | None:
+    ci = db.scalar(select(CheckIn).where(CheckIn.user_id == user_id).order_by(CheckIn.created_at.desc()).limit(1))
+    if ci and ci.created_at.replace(tzinfo=ci.created_at.tzinfo or UTC) >= datetime.now(UTC) - timedelta(hours=hours):
+        return ci
+    return None
+
+
+def partner_checkin_signal(db: Session, partner: User) -> dict | None:
+    """Only the feeling and intensity of the partner's latest check-in, and only if they
+    opted in with the `share_checkin_signal` consent. Never the note."""
+    from ..deps import consent_state
+
+    if not consent_state(db, partner.id).get("share_checkin_signal"):
+        return None
+    ci = latest_checkin(db, partner.id)
+    return {"feeling": ci.emotion, "intensity": ci.intensity} if ci else None
 
 
 def build_personal_context(db: Session, user: User, checkin_id: str | None = None) -> dict:
