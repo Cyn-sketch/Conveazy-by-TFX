@@ -35,7 +35,7 @@ const browser = await chromium.launch();
 try {
   console.log("Partner A onboarding");
   const a = await signup(browser, "Asha");
-  assert(await a.getByText("Mock mode: not live AI").first().isVisible(), "mock mode is labelled in the shell");
+  assert(await visible(a, "Mock mode: not live AI"), "mock mode is labelled in the shell");
   await shot(a, "01-home");
 
   console.log("Check-in");
@@ -147,7 +147,7 @@ try {
   await b.fill("#draft", "I can't do this anymore, I want to kill myself");
   await b.click("button:has-text('Translate')");
   await b.getByText("Your safety comes first").waitFor();
-  assert(await b.getByText("14416").isVisible(), "crisis resources shown instead of a rewrite");
+  assert(await b.getByText("14416").isVisible() && await visible(b, "What you're saying underneath"), "crisis resources shown alongside the rewrite");
   await shot(b, "08-crisis-mobile");
 
   console.log("Privacy page");

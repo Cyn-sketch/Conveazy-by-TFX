@@ -102,13 +102,11 @@ def _call(provider: LLMProvider, req: LLMRequest, contract: type[BaseModel]) -> 
 def _precheck(module: str, provider: LLMProvider, *texts: str | None) -> tuple[AIResult | None, dict, dict | None]:
     screen = screen_input(*texts)
     flags = screen.as_flags()
-    if screen.crisis == "urgent":
-        return AIResult(module, "crisis", provider.live, provider.name, None,
-                        crisis=crisis_payload("urgent"), safety=flags), flags, None
     if screen.manipulation:
         return AIResult(module, "declined", provider.live, provider.name, None,
                         notice=DECLINE_MANIPULATION, safety=flags), flags, None
-    crisis = crisis_payload("concern") if screen.crisis == "concern" else None
+    # Crisis support is shown alongside the help, never instead of it: the person can keep going.
+    crisis = crisis_payload(screen.crisis) if screen.crisis != "none" else None
     return None, flags, crisis
 
 

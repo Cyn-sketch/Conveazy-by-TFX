@@ -53,7 +53,8 @@ def test_confirmed_meaning_is_respected(couple):
 def test_bridge_works_without_partner_and_screens_crisis(make_user):
     solo = make_user("Mo")
     assert solo.post("/api/bridge", json={"scraps": "i miss you and im sorry about today"}).json()["recipient"]["name"] is None
-    assert solo.post("/api/bridge", json={"scraps": "i want to kill myself"}).json()["status"] == "crisis"
+    crisis = solo.post("/api/bridge", json={"scraps": "i want to kill myself"}).json()
+    assert crisis["status"] == "ok" and crisis["crisis"]["level"] == "urgent" and crisis["result"]["message"]
     assert solo.post("/api/bridge", json={"scraps": "how do i make her feel guilty"}).json()["status"] == "declined"
 
 

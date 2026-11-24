@@ -28,9 +28,9 @@ def test_translator_flags_and_preserves_boundary(make_user):
     assert all("stop yelling" in v["text"].lower() for v in r["result"]["versions"]), "boundary must survive rewrites"
 
 
-def test_translator_crisis_short_circuits(make_user):
+def test_translator_crisis_shows_support_and_keeps_helping(make_user):
     r = make_user().post("/api/translate", json={"draft": "I can't do this, I want to kill myself"}).json()
-    assert r["status"] == "crisis" and r["result"] is None
+    assert r["status"] == "ok" and r["result"] and r["crisis"]["level"] == "urgent"
     assert any("14416" in x["contact"] for x in r["crisis"]["resources"])
 
 

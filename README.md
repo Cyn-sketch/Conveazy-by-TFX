@@ -95,7 +95,7 @@ BASE_URL=http://localhost:3000 SHOTS=./e2e/shots npm run e2e
 
 - **Knowledge corpus is a draft.** The 16 passages are editorial paraphrases written for CONVEAZY, not quotations. They and their URLs **must be checked by a qualified clinician and a person before launch** (`corpus.json → _meta.links_verified: false`). The build environment had no internet access to verify links.
 - Retrieval is in-process TF-IDF vectors. pgvector with embeddings is Phase 2.
-- Safety screens are pattern-based floors, not clinical screening. Crisis lines should be localised per user region.
+- Safety screens are pattern-based floors, not clinical screening. Crisis support is shown alongside the help, never instead of it, so the person can keep going. Crisis lines should be localised per user region.
 - The rate limiter is in-memory (single process). Use Redis when running multiple workers.
 - No email verification or password reset yet. No Alembic migrations yet.
 - Mock rewrites are template-based and read stiffly. Real quality needs a live provider.
