@@ -2,7 +2,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -10,12 +10,20 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_prefix="CONVEAZY_", extra="ignore")
 
     env: Literal["development", "test", "production"] = "development"
-    database_url: str = "postgresql+psycopg://conveazy:conveazy@localhost:5432/conveazy"
+    # Also picks up the variables Vercel's Neon / Postgres integrations create on their own.
+    database_url: str = Field(
+        default="postgresql+psycopg://conveazy:conveazy@localhost:5432/conveazy",
+        validation_alias=AliasChoices("CONVEAZY_DATABASE_URL", "DATABASE_URL", "POSTGRES_URL"),
+    )
 
     @field_validator("database_url")
     @classmethod
     def _psycopg_driver(cls, v: str) -> str:
         # Hosted Postgres (Neon, Supabase, Vercel Postgres) hands out postgres:// or postgresql:// URLs.
+        v = v.strip()
+        if v.startswith("psql "):  # copied from Neon's "psql" snippet
+            v = v[5:].strip()
+        v = v.strip("'\"")
         for prefix in ("postgres://", "postgresql://"):
             if v.startswith(prefix):
                 return "postgresql+psycopg://" + v[len(prefix):]
