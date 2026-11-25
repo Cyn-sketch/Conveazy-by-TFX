@@ -35,7 +35,7 @@ def make_user(app):
     def _make(name="Asha", email=None, ai=True, onboard=True):
         c = _client(app)
         email = email or f"{name.lower()}@example.com"
-        r = c.post("/api/auth/signup", json={"email": email, "password": "correct-horse-battery", "display_name": name})
+        r = c.post("/api/auth/signup", json={"email": email, "password": "correct-horse-battery", "display_name": name, "confirm_adult": True})
         assert r.status_code == 201, r.text
         if onboard:
             r = c.post("/api/onboarding", json={"accept_terms_and_care": True, "ai_processing": ai})

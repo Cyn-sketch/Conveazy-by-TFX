@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "@/components/Session";
 import { ErrorNote, PageHeader } from "@/components/ui";
 import { api, isApiError } from "@/lib/api";
+import { Grievance } from "@/components/Grievance";
 
 type Privacy = {
   retention_days: number; save_history: boolean;
@@ -66,8 +67,10 @@ export default function PrivacyPage() {
 
       <details className="mt-8">
         <summary className="cursor-pointer text-sm text-muted">Consent history</summary>
-        <ul className="mt-3 space-y-1 text-sm text-muted">{p.consent_history.map((c, i) => <li key={i}>{new Date(c.at).toLocaleString()}: {c.kind.replace(/_/g, " ")} {c.granted ? "granted" : "withdrawn"}</li>)}</ul>
+        <ul className="mt-3 space-y-1 text-sm text-muted">{p.consent_history.map((c, i) => <li key={i}>{new Date(c.at).toLocaleString()}: {c.kind === "age_18_plus" ? "confirmed 18 or older" : `${c.kind.replace(/_/g, " ")} ${c.granted ? "granted" : "withdrawn"}`}</li>)}</ul>
       </details>
+
+      <Grievance className="mt-8" />
 
       <section className="mt-12 rounded-xl2 border border-warn/30 p-5">
         <p className="h-card mb-2 text-warn">Delete my account</p>

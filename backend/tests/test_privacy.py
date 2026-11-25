@@ -99,7 +99,7 @@ def test_account_deletion_removes_everything(couple):
         for t in ("profile_entries", "checkins", "conversations", "messages", "consents"):
             rows = conn.execute(text(f"select count(*) from {t}")).scalar()
             if t == "consents":
-                assert rows == 3  # Ravi's onboarding consents only
+                assert rows == 4  # Ravi's age confirmation + onboarding consents only
             else:
                 assert rows == 0, t
 
@@ -112,7 +112,7 @@ def test_consent_ledger_and_training_default_off(make_user):
     a.put("/api/privacy", json={"ai_processing": False})
     p = a.get("/api/privacy").json()
     assert p["consents"]["ai_processing"] is False
-    assert len(p["consent_history"]) == 4
+    assert len(p["consent_history"]) == 5
 
 
 def test_save_history_off_stores_nothing(make_user):

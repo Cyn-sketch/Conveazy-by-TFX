@@ -119,6 +119,7 @@ Set these in the Vercel project's Environment Variables:
 | `CONVEAZY_COOKIE_SECURE` | `true` |
 | `CONVEAZY_AI_PROVIDER` | `gemini` (optional: a Gemini key alone switches it on; set `mock` to force mock mode) |
 | `CONVEAZY_GEMINI_API_KEY` | your key (`GEMINI_API_KEY` also works). Redeploy after adding it. |
+| `NEXT_PUBLIC_GRIEVANCE_NAME`, `NEXT_PUBLIC_GRIEVANCE_EMAIL` | who handles complaints (shown on the landing, sign-up and Privacy pages; hidden until the email is set) |
 
 Tables are created on the backend's first start. Run `vercel dev` from the repo root to run both services together locally.
 

@@ -5,10 +5,12 @@ import { useState } from "react";
 import { api, isApiError, type User } from "@/lib/api";
 import { Wordmark } from "./Brand";
 import { ErrorNote } from "./ui";
+import { Grievance } from "./Grievance";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
   const [form, setForm] = useState({ email: "", password: "", display_name: "" });
+  const [adult, setAdult] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [k]: e.target.value });
@@ -17,7 +19,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     e.preventDefault();
     setBusy(true); setError(null);
     try {
-      const body = mode === "signup" ? form : { email: form.email, password: form.password };
+      const body = mode === "signup" ? { ...form, confirm_adult: adult } : { email: form.email, password: form.password };
       const u = await api<User>(`/auth/${mode}`, { method: "POST", json: body });
       router.replace(u.onboarded ? "/app" : "/onboarding");
     } catch (err) {
@@ -41,6 +43,12 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           <input id="password" type="password" className="input" required minLength={mode === "signup" ? 10 : 1} value={form.password} onChange={set("password")}
             autoComplete={mode === "signup" ? "new-password" : "current-password"} />
           {mode === "signup" && <p className="mt-1.5 text-xs text-muted">At least 10 characters.</p>}</div>
+        {mode === "signup" && (
+          <label className="flex items-start gap-2.5 text-sm text-muted">
+            <input type="checkbox" required checked={adult} onChange={(e) => setAdult(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[rgb(var(--clay))]" />
+            <span>I&apos;m 18 or older. CONVEAZY is made for adults.</span>
+          </label>
+        )}
         <ErrorNote message={error} />
         <button className="btn-primary w-full py-3" disabled={busy}>{busy ? "One moment…" : mode === "signup" ? "Create account" : "Sign in"}</button>
       </form>
@@ -48,6 +56,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         {mode === "signup" ? <>Already have an account? <Link className="text-ink underline" href="/login">Sign in</Link></>
           : <>New here? <Link className="text-ink underline" href="/signup">Create your space</Link></>}
       </p>
+      <Grievance className="mt-10" />
     </main>
   );
 }

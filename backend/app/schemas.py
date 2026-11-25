@@ -11,6 +11,8 @@ class SignupIn(BaseModel):
     email: EmailStr
     password: str = Field(min_length=10, max_length=200)
     display_name: str = Field(min_length=1, max_length=80)
+    # CONVEAZY is for adults only (relationships and mental health; India's DPDP Act treats under-18s as children).
+    confirm_adult: bool = False
 
 
 class LoginIn(BaseModel):
