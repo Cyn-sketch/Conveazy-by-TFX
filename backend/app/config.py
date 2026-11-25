@@ -57,7 +57,9 @@ class Settings(BaseSettings):
                 from cryptography.fernet import Fernet
                 Fernet(self.data_encryption_key.encode())
             except Exception:  # noqa: BLE001
-                problems.append("CONVEAZY_DATA_ENCRYPTION_KEY isn't a valid Fernet key (44 characters ending in '=')")
+                # A long random passphrase also works; a key is derived from it.
+                if len(self.data_encryption_key) < 32:
+                    problems.append("CONVEAZY_DATA_ENCRYPTION_KEY must be a Fernet key or a random passphrase of 32+ characters")
         if not self.cookie_secure:
             problems.append("CONVEAZY_COOKIE_SECURE must be true")
         if problems:

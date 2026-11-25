@@ -115,7 +115,7 @@ Set these in the Vercel project's Environment Variables:
 | `CONVEAZY_ENV` | `production` |
 | `CONVEAZY_DATABASE_URL` | a hosted Postgres URL, such as Neon from the Vercel Marketplace. Use the pooled connection string. `postgres://` URLs are accepted. |
 | `CONVEAZY_JWT_SECRET` | 32+ random characters |
-| `CONVEAZY_DATA_ENCRYPTION_KEY` | a Fernet key (see `backend/.env.example`) |
+| `CONVEAZY_DATA_ENCRYPTION_KEY` | 32+ random characters from a password generator (a Fernet key also works). Never change it once you have data, or old entries can't be read. |
 | `CONVEAZY_COOKIE_SECURE` | `true` |
 | `CONVEAZY_AI_PROVIDER` | `gemini` (or `mock` to try it without a key) |
 | `CONVEAZY_GEMINI_API_KEY` | your key |

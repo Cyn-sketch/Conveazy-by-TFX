@@ -53,7 +53,11 @@ def _fernet() -> Fernet:
         # Development fallback: derive a stable key from the JWT secret so local data
         # is still never stored in plaintext. Production refuses to start without a key.
         key = base64.urlsafe_b64encode(hashlib.sha256(("enc:" + s.jwt_secret).encode()).digest()).decode()
-    return Fernet(key.encode())
+    try:
+        return Fernet(key.encode())
+    except ValueError:
+        # Not a Fernet key: treat it as a long passphrase and derive a key from it.
+        return Fernet(base64.urlsafe_b64encode(hashlib.sha256(("enc:" + key).encode()).digest()))
 
 
 def encrypt(value: str | None) -> str | None:
