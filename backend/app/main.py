@@ -85,8 +85,13 @@ def _safe_reason(exc: Exception) -> str:
     return "Server setup problem: the API couldn't start. Check the backend logs in Vercel."
 
 
-try:
-    app = create_app()
-except Exception as exc:  # noqa: BLE001 - startup must never crash without telling the user why
-    log.exception("startup failed")
-    app = _setup_error_app(_safe_reason(exc))
+def _build() -> FastAPI:
+    try:
+        return create_app()
+    except Exception as exc:  # noqa: BLE001 - startup must never crash without telling the user why
+        log.exception("startup failed")
+        return _setup_error_app(_safe_reason(exc))
+
+
+# Keep this a plain top-level assignment: Vercel looks for `app` here.
+app = _build()
