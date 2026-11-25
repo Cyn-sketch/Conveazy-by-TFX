@@ -2,7 +2,9 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import AliasChoices, Field, field_validator
+import os
+
+from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,6 +30,17 @@ class Settings(BaseSettings):
             if v.startswith(prefix):
                 return "postgresql+psycopg://" + v[len(prefix):]
         return v
+
+    @model_validator(mode="after")
+    def _prefixed_integration_url(self):
+        # Vercel's Storage integrations may add a custom prefix (e.g. STORAGE_DATABASE_URL).
+        if "@localhost:" in self.database_url:
+            for name in sorted(os.environ):
+                if name.endswith(("_DATABASE_URL", "_POSTGRES_URL")) and not name.endswith("UNPOOLED_DATABASE_URL") \
+                        and os.environ[name].startswith(("postgres://", "postgresql://")):
+                    self.database_url = type(self)._psycopg_driver(os.environ[name])
+                    break
+        return self
 
     # Auth
     jwt_secret: str = Field(default="dev-only-change-me-dev-only-change-me", min_length=32)

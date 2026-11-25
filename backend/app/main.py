@@ -78,8 +78,18 @@ def _safe_reason(exc: Exception) -> str:
         fields = sorted({"CONVEAZY_" + str(e["loc"][0]).upper() for e in exc.errors() if e.get("loc")})
         return "Server setup problem: check these environment variables: " + ", ".join(fields) + "."
     if isinstance(exc, SQLAlchemyError):
-        return ("Server setup problem: can't reach the database. Check CONVEAZY_DATABASE_URL "
-                "(use the pooled Postgres connection string) and redeploy.")
+        import os
+        import re
+        source = next((n for n in ("CONVEAZY_DATABASE_URL", "DATABASE_URL", "POSTGRES_URL") if os.environ.get(n)), None) \
+            or next((n for n in sorted(os.environ) if n.endswith(("_DATABASE_URL", "_POSTGRES_URL"))), None)
+        if source is None:
+            return ("Server setup problem: no database is set. Connect a Neon database in Vercel's Storage tab "
+                    "(or set CONVEAZY_DATABASE_URL) and redeploy.")
+        detail = str(getattr(exc, "orig", None) or exc).strip().splitlines()[0][:220]
+        detail = re.sub(r"[a-z+]+://\S+", "<url>", detail)          # never echo a connection string
+        detail = re.sub(r"(password|user)=\S+", r"\1=<hidden>", detail)
+        return (f"Server setup problem: can't reach the database set in {source}. Reason: {detail} "
+                "Check that variable in Vercel (pooled Neon connection string) and redeploy.")
     if isinstance(exc, RuntimeError) and str(exc).startswith("Unsafe production config"):
         return "Server setup problem: " + str(exc).split(": ", 1)[1] + "."
     return "Server setup problem: the API couldn't start. Check the backend logs in Vercel."
