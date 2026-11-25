@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/Brand";
 import Character from "@/components/Character";
+import { Grievance } from "@/components/Grievance";
 
 export default function Landing() {
   return (
@@ -40,6 +41,7 @@ export default function Landing() {
       <footer className="flex flex-col gap-3 py-8 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
         <span className="inline-flex items-center gap-2">“Two people should not have to speak the same emotional language to understand each other.”</span>
         <span>Not therapy. Works alongside professional care.</span>
+        <Grievance />
       </footer>
     </main>
     <Character className="relative aspect-[4/3] w-full [mask-image:linear-gradient(to_bottom,transparent,#000_18%)] lg:sticky lg:top-0 lg:aspect-auto lg:h-dvh lg:w-[42vw] lg:[mask-image:linear-gradient(to_right,transparent,#000_14%)]" />

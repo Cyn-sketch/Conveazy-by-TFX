@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from ..config import get_settings
 from ..db import get_db
 from ..deps import COOKIE, auth_rate_limit, current_user
-from ..models import User
+from ..models import Consent, User
 from ..schemas import LoginIn, SignupIn, UserOut
 from ..security import create_token, hash_password, verify_password
 from ..services import purge_expired
@@ -28,12 +28,17 @@ def user_out(u: User) -> UserOut:
 
 @router.post("/signup", response_model=UserOut, status_code=201, dependencies=[Depends(auth_rate_limit)])
 def signup(body: SignupIn, resp: Response, db: Session = Depends(get_db)):
+    if not body.confirm_adult:
+        raise HTTPException(400, detail={"code": "age_required",
+                                         "message": "CONVEAZY is for adults. Please confirm you are 18 or older."})
     email = body.email.lower()
     if db.scalar(select(User).where(User.email == email)):
         raise HTTPException(409, detail={"code": "email_taken", "message": "An account with that email already exists."})
     user = User(email=email, password_hash=hash_password(body.password), display_name=body.display_name.strip(),
                 retention_days=get_settings().default_retention_days)
     db.add(user)
+    db.flush()
+    db.add(Consent(user_id=user.id, kind="age_18_plus", granted=True))
     db.commit()
     _set_session(resp, user)
     return user_out(user)

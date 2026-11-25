@@ -35,7 +35,7 @@ class Consent(Base):
     __tablename__ = "consents"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    kind: Mapped[str] = mapped_column(String(40))  # terms_and_care | ai_processing | model_training
+    kind: Mapped[str] = mapped_column(String(40))  # age_18_plus | terms_and_care | ai_processing | model_training
     granted: Mapped[bool] = mapped_column(Boolean)
     policy_version: Mapped[str] = mapped_column(String(20), default="2026-11")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
