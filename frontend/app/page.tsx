@@ -4,8 +4,8 @@ import Character from "@/components/Character";
 
 export default function Landing() {
   return (
-    <div className="lg:grid lg:min-h-dvh lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-    <main className="flex min-h-dvh flex-col px-5 sm:px-8 lg:px-12">
+    <div className="lg:grid lg:min-h-dvh lg:grid-cols-[minmax(0,1fr)_auto]">
+    <main className="flex min-h-dvh min-w-0 flex-col px-5 sm:px-8 lg:mx-auto lg:w-full lg:max-w-5xl lg:px-12">
       <nav className="flex items-center justify-between py-6">
         <Wordmark withSignature />
         <Link href="/login" className="text-sm font-medium text-muted hover:text-ink">Sign in</Link>
@@ -42,7 +42,7 @@ export default function Landing() {
         <span>Not therapy. Works alongside professional care.</span>
       </footer>
     </main>
-    <Character className="relative aspect-[4/3] w-full [mask-image:linear-gradient(to_bottom,transparent,#000_18%)] lg:sticky lg:top-0 lg:aspect-auto lg:h-dvh lg:[mask-image:linear-gradient(to_right,transparent,#000_14%)]" />
+    <Character className="relative aspect-[4/3] w-full [mask-image:linear-gradient(to_bottom,transparent,#000_18%)] lg:sticky lg:top-0 lg:aspect-auto lg:h-dvh lg:w-[42vw] lg:[mask-image:linear-gradient(to_right,transparent,#000_14%)]" />
     </div>
   );
 }
