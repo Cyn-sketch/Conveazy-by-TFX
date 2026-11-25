@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import time
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -78,23 +79,94 @@ def _compose(module: str, context: dict | None, evidence: list | None, body: str
     return f"{sys_text}\n\n{mod_text}", "\n\n---\n\n".join(parts), f"{sys_ver}+{mod_ver}"
 
 
-def _call(provider: LLMProvider, req: LLMRequest, contract: type[BaseModel]) -> BaseModel:
+def _repair(raw: Any, err: ValidationError) -> Any:
+    """Fix the harmless ways a model overshoots the contract instead of throwing the whole answer away:
+    trim over-long text and lists, clamp numbers, and drop list items (or optional fields) with an unknown label."""
+    drops: list[tuple] = []
+    for e in err.errors():
+        loc, kind, ctx = e["loc"], e["type"], e.get("ctx") or {}
+        parent: Any = raw
+        try:
+            for k in loc[:-1]:
+                parent = parent[k]
+            key = loc[-1] if loc else None
+            if key is None:
+                continue
+            value = parent[key]
+        except (KeyError, IndexError, TypeError):
+            continue
+        if kind == "string_too_long" and isinstance(value, str):
+            parent[key] = value[: ctx["max_length"]].rstrip()
+        elif kind == "too_long" and isinstance(value, list):
+            parent[key] = value[: ctx["max_length"]]
+        elif kind == "less_than_equal" and isinstance(value, (int, float)):
+            parent[key] = ctx["le"]
+        elif kind == "greater_than_equal" and isinstance(value, (int, float)):
+            parent[key] = ctx["ge"]
+        elif kind in ("literal_error", "int_parsing", "int_type", "string_type", "model_type", "list_type"):
+            # Drop the nearest list item that holds the bad value; otherwise drop the field if it is optional.
+            for i in range(len(loc) - 1, -1, -1):
+                if isinstance(loc[i], int):
+                    drops.append(tuple(loc[: i + 1]))
+                    break
+            else:
+                drops.append(tuple(loc))
+    for path in sorted(set(drops), reverse=True):  # later list items first, so indexes stay valid
+        try:
+            parent = raw
+            for k in path[:-1]:
+                parent = parent[k]
+            del parent[path[-1]]
+        except (KeyError, IndexError, TypeError):
+            pass
+    return raw
+
+
+def _validate(raw: Any, contract: type[BaseModel]) -> BaseModel:
+    last: ValidationError | None = None
+    for _ in range(4):
+        try:
+            return contract.model_validate(raw)
+        except ValidationError as e:
+            last = e
+            if not isinstance(raw, dict):
+                break
+            raw = _repair(raw, e)
+    assert last is not None
+    raise last
+
+
+def _describe(e: ValidationError) -> str:
+    return "; ".join(f"{'.'.join(map(str, x['loc']))}: {x['type']}" for x in e.errors()[:6])
+
+
+def _call(provider: LLMProvider, req: LLMRequest, contract: type[BaseModel],
+          disclosed: set[str] | frozenset[str] = frozenset()) -> BaseModel:
     last_err: Exception | None = None
-    attempts = 2 if provider.live else 1
-    for _ in range(attempts):
+    attempts = 3 if provider.live else 1
+    base_system = req.system
+    for attempt in range(attempts):
+        if attempt:
+            time.sleep(2.0 if isinstance(last_err, ProviderError) and getattr(last_err, "status", None) == 429 else 0.5)
         try:
             raw = provider.complete_json(req)
-            parsed = contract.model_validate(raw)
-        except (ProviderError, ValidationError) as e:
+            parsed = _validate(raw, contract)
+        except ProviderError as e:
             last_err = e
-            log.warning("ai.%s invalid output: %s", req.module, type(e).__name__)
+            log.warning("ai.%s provider error (attempt %d): %s", req.module, attempt + 1, e)
             continue
-        out = screen_output(_strings(parsed.model_dump()))
+        except ValidationError as e:
+            last_err = e
+            log.warning("ai.%s invalid output (attempt %d): %s", req.module, attempt + 1, _describe(e))
+            req = LLMRequest(req.module, base_system + "\n\nYour previous answer did not match the required JSON format ("
+                             + _describe(e) + "). Return valid JSON that follows the format exactly.", req.user, req.payload)
+            continue
+        out = screen_output(_strings(parsed.model_dump()), disclosed)
         if out.ok:
             return parsed
         last_err = RuntimeError(f"safety: {out.violations}")
-        log.warning("ai.%s output blocked by safety screen: %s", req.module, out.violations)
-        req = LLMRequest(req.module, req.system + "\n\nYour previous answer broke a rule ("
+        log.warning("ai.%s output blocked by safety screen (attempt %d): %s", req.module, attempt + 1, out.violations)
+        req = LLMRequest(req.module, base_system + "\n\nYour previous answer broke a rule ("
                          + ", ".join(out.violations) + "). Rewrite without it.", req.user, req.payload)
     raise AIUnavailable("We couldn't produce a safe, valid response this time. Please try again.") from last_err
 
@@ -232,7 +304,7 @@ def bridge(provider: LLMProvider, *, scraps: str, confirmed_meaning: str | None,
     parts.append("INPUT:\n" + json.dumps({"what_happened": situation, "scraps": scraps, "confirmed_meaning": confirmed_meaning,
                                           "sender_name": sender_name, "recipient_name": recipient_name}, ensure_ascii=False))
     system, user, ver = _compose("bridge", context, hits, "\n\n".join(parts))
-    parsed = _call(provider, LLMRequest("bridge", system, user, payload), BridgeResult)
+    parsed = _call(provider, LLMRequest("bridge", system, user, payload), BridgeResult, disclosed)
     data = parsed.model_dump()
     data["source_ids"] = [i for i in data["source_ids"] if i in allowed]
     for w in data["why_this_works"]:

@@ -110,9 +110,16 @@ class OutputScreen:
         return not self.violations
 
 
-def screen_output(text: str) -> OutputScreen:
+# Condition words a person may have disclosed about themselves (keys match engine._CONDITIONS).
+_CONDITION_TERMS = {"bpd": ("bpd", "borderline"), "depression": ("depress",), "gad": ("anxiety", "gad"), "pcos": ("pcos",)}
+
+
+def screen_output(text: str, disclosed: set[str] | frozenset[str] = frozenset()) -> OutputScreen:
+    """`disclosed`: conditions the person shared about themselves. Restating those isn't diagnosing;
+    naming anything else still is."""
     v = []
-    if _any(_DIAGNOSIS, text):
+    allowed = tuple(t for k in disclosed for t in _CONDITION_TERMS.get(k, ()))
+    if [m for m in _any(_DIAGNOSIS, text) if not (allowed and any(t in m for t in allowed))]:
         v.append("diagnosis")
     if _any(_MEDICATION, text):
         v.append("medication")
