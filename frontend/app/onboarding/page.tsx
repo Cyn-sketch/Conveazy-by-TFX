@@ -40,7 +40,7 @@ export default function Onboarding() {
     <main className="mx-auto min-h-dvh max-w-xl px-5 py-10">
       <Wordmark withSignature />
       <ol className="mb-10 mt-10 flex gap-2" aria-label="Progress">
-        {STEPS.map((s, i) => <li key={s} className={`h-1 flex-1 rounded-full ${i <= step ? "bg-ink" : "bg-line"}`} aria-current={i === step ? "step" : undefined}><span className="sr-only">{s}</span></li>)}
+        {STEPS.map((s, i) => <li key={s} className={`h-1 flex-1 rounded-full ${i <= step ? "bg-clay" : "bg-line"}`} aria-current={i === step ? "step" : undefined}><span className="sr-only">{s}</span></li>)}
       </ol>
 
       {step === 0 && (

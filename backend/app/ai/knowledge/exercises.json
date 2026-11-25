@@ -1,0 +1,151 @@
+{
+ "_note": "Calming skills drawn from DBT, CBT and self-compassion practice. Pending clinician review.",
+ "exercises": [
+  {
+   "id": "stop",
+   "name": "STOP before you hit send",
+   "good": "strong urge to react, send or snap",
+   "source": "DBT distress tolerance",
+   "steps": [
+    "Stop. Put the phone face down. Don't send anything yet.",
+    "Take a step back: one slow breath, or walk to another room.",
+    "Observe: what am I feeling, and what's my body doing?",
+    "Proceed mindfully: what do I actually want from this conversation?"
+   ]
+  },
+  {
+   "id": "cold",
+   "name": "Cold water reset",
+   "good": "rage or panic at a very high level",
+   "source": "DBT TIPP skill (temperature)",
+   "steps": [
+    "Fill a bowl with cold water, or grab an ice pack wrapped in a cloth.",
+    "Hold your breath and put your face in the water, or the pack on your eyes and cheeks, for about 30 seconds.",
+    "Repeat two or three times. Your heart rate drops and the wave usually eases within a minute."
+   ],
+   "caution": "Skip this one if you have a heart condition or a slow heart rate, and check with your doctor first if unsure."
+  },
+  {
+   "id": "move",
+   "name": "Burn it off",
+   "good": "anger or restlessness that needs somewhere to go",
+   "source": "DBT TIPP skill (intense exercise)",
+   "steps": [
+    "Do 5 to 10 minutes of hard movement: jumping jacks, stairs, a fast walk, dancing.",
+    "Go hard enough to get out of breath.",
+    "Then slow down and breathe before you go back to your phone."
+   ]
+  },
+  {
+   "id": "breath",
+   "name": "Long-exhale breathing",
+   "good": "anxiety, a racing heart, or anger building",
+   "source": "Paced breathing (DBT TIPP)",
+   "steps": [
+    "Breathe in through your nose for 4.",
+    "Breathe out slowly through your mouth for 6 to 8.",
+    "Keep going for 2 to 3 minutes. The long exhale is what slows you down."
+   ]
+  },
+  {
+   "id": "relax",
+   "name": "Tense and let go",
+   "good": "a tight, wound-up body",
+   "source": "Paired muscle relaxation (DBT TIPP)",
+   "steps": [
+    "Breathe in and tense one part of your body hard: fists, shoulders, jaw.",
+    "Hold for 5 seconds.",
+    "Breathe out, let it all drop, and notice the difference. Move through your body."
+   ]
+  },
+  {
+   "id": "ground",
+   "name": "5-4-3-2-1 grounding",
+   "good": "spiralling thoughts, panic, or feeling unreal or far away",
+   "source": "Grounding (CBT and DBT)",
+   "steps": [
+    "Name 5 things you can see.",
+    "4 things you can touch, and touch them.",
+    "3 things you can hear, 2 you can smell, 1 you can taste."
+   ]
+  },
+  {
+   "id": "facts",
+   "name": "Check the facts",
+   "good": "fear of being left, ignored or not cared about, especially after silence",
+   "source": "DBT emotion regulation",
+   "steps": [
+    "Write down what actually happened, only what a camera would see.",
+    "Write the story your mind is telling about it.",
+    "List two other explanations that could also be true (busy, asleep, time zone, phone died).",
+    "Ask: does my reaction fit the facts, or the story?"
+   ]
+  },
+  {
+   "id": "opposite",
+   "name": "Opposite action",
+   "good": "wanting to attack, punish or go cold when that won't help",
+   "source": "DBT emotion regulation",
+   "steps": [
+    "Notice the urge: yell, go silent, say something to hurt.",
+    "Do the gentle opposite: soften your voice, unclench your hands, or step away kindly.",
+    "Keep doing it until the urge fades. You're not faking, you're giving yourself a choice."
+   ]
+  },
+  {
+   "id": "urge",
+   "name": "Ride the wave",
+   "good": "an intense urge that feels like it will last forever",
+   "source": "Urge surfing (DBT and mindfulness)",
+   "steps": [
+    "Rate the urge from 0 to 10.",
+    "Notice where it sits in your body and breathe into it.",
+    "Watch it rise, peak and fall like a wave. Most urges drop within minutes. Rate it again."
+   ]
+  },
+  {
+   "id": "worry",
+   "name": "Park the worry",
+   "good": "looping worry and what-ifs",
+   "source": "Worry postponement (CBT for anxiety)",
+   "steps": [
+    "Write the worry down in one line.",
+    "Pick a 15-minute 'worry time' later today.",
+    "When it comes back, tell it: not now, at worry time. Then bring your attention back to what's in front of you."
+   ]
+  },
+  {
+   "id": "soothe",
+   "name": "Soothe your senses",
+   "good": "feeling raw, hurt or overwhelmed",
+   "source": "DBT self-soothe",
+   "steps": [
+    "Pick one thing for each sense you can: a warm drink, a soft blanket, a song you love, a smell you like, something nice to look at.",
+    "Give it your full attention for a few minutes.",
+    "Let it be enough for now."
+   ]
+  },
+  {
+   "id": "tiny",
+   "name": "One tiny thing",
+   "good": "low, heavy, empty, or can't get going",
+   "source": "Behavioural activation (for depression)",
+   "steps": [
+    "Pick one small thing that takes under 5 minutes: drink water, wash your face, step outside, eat something.",
+    "Do just that one thing.",
+    "Notice you did it. That counts."
+   ]
+  },
+  {
+   "id": "kind",
+   "name": "Self-compassion break",
+   "good": "shame, guilt, or being hard on yourself",
+   "source": "Self-compassion (Kristin Neff)",
+   "steps": [
+    "Put a hand on your chest and say: this is really hard right now.",
+    "Remind yourself: anyone would struggle with this. I'm not alone in it.",
+    "Ask: what would I say to a friend who felt this way? Say that to yourself."
+   ]
+  }
+ ]
+}

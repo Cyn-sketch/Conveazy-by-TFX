@@ -77,7 +77,7 @@ function Translator() {
                 <div className="mb-4 flex gap-1 overflow-x-auto" role="tablist">
                   {r.versions.map((v, i) => (
                     <button key={v.style} role="tab" aria-selected={tab === i} onClick={() => setTab(i)}
-                      className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm ${tab === i ? "bg-ink text-paper" : "text-muted hover:text-ink"}`}>
+                      className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm ${tab === i ? "bg-blush text-ink" : "text-muted hover:text-ink"}`}>
                       {STYLE_LABELS[v.style as keyof typeof STYLE_LABELS] ?? v.style}</button>
                   ))}
                 </div>

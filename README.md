@@ -13,6 +13,12 @@ One partner finds it hard to put feelings into words. The other may feel things 
 | Module | What it does |
 |---|---|
 | **Say it to them** (main) | Scraps → a raw, private read of what you are feeling right now (optionally added to the message) → "Is this what you mean?" → a message shaped by the recipient's own profile. It explains each choice (from their profile, from the sources, or general), what was left out, and what was kept true. If the recipient opts in and checked in at 7/10 or higher, it adds a short version and a timing nudge |
+| Feeling brief (new) | Goes with every message: what the sender truly feels, how intense it is (their own 1–10 rating), why, two everyday "It's like…" examples and what would help. For partners who don't have many words for feelings. "Copy message + brief" sends both |
+| My story (new) | A private backstory field. Only the AI reads it, to understand the person, both when they write and when their partner writes to them. The server forces it private, and a leak guard redacts any sentence that repeats it |
+| Trait suggestions (new) | 1–3 patterns the writer may be showing (e.g. "Reading silence as rejection"), clearly marked not a diagnosis. Private unless the writer switches on sharing |
+| Condition trigger words (new) | `ai/knowledge/triggers.json`: common hurt points for BPD, depression (MDD), GAD and PCOS. Avoided whenever the recipient disclosed that condition, even if they didn't list it themselves. Pending clinician review |
+| Calming exercises (new) | `ai/knowledge/exercises.json`: 13 DBT, CBT and self-compassion skills. Three are picked for how the writer feels right now |
+| Long distance (new) | Either partner marks it in About me. Messages then offer calls, voice notes and a set time to talk, never anything in person |
 | About me profiles | Each partner writes about themselves: how they feel, triggers, what calms them, how they express themselves, and diagnoses they choose to share. Every answer has its own switches |
 | Auth & onboarding | Email + password (argon2id), httpOnly session cookie, 3-step onboarding with care acknowledgement and consents |
 | Profiles | Ten communication-preference answers, each with its own "Share with partner" and "Let AI use this" switches (both off by default) |
@@ -25,6 +31,14 @@ One partner finds it hard to put feelings into words. The other may feel things 
 | Safety | Crisis detection (with India, US, UK and global resources), manipulation declines, blocks on diagnosis and medication output, citation enforcement |
 
 Architecture, schema, journeys, prompt design and privacy flows: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**. API contracts: **[docs/API.md](docs/API.md)**.
+
+## Going live with a free Gemini key (two-person test)
+
+1. Get a key at aistudio.google.com (API keys).
+2. In the backend's environment set `CONVEAZY_AI_PROVIDER=gemini` and `CONVEAZY_GEMINI_API_KEY=<your key>`. The default model is `gemini-2.5-flash` (override with `CONVEAZY_GEMINI_MODEL`).
+3. Never commit the key. Put it in your host's secret settings.
+
+Privacy note: on Google's free tier, Google may use prompts to improve its products and human reviewers may read them. Use nicknames, keep "My story" general, and switch to a paid key before anyone else uses CONVEAZY.
 
 ## Mock mode: read this first
 
@@ -106,4 +120,8 @@ BASE_URL=http://localhost:3000 SHOTS=./e2e/shots npm run e2e
 
 ## Brand
 
-CONVEAZY (always capitals) · signature "CONVEAZY by TFX" · parent ecosystem MadAutomate. The palette is warm paper and ink, with clay for *you*, sage for *your partner*, and dusk for the space between. Type is Fraunces (editorial serif) and Inter. The mark is two voices turned toward each other, with the space between them held open. Light and dark themes follow the system setting.
+CONVEAZY (always capitals) · signature "CONVEAZY by TFX" · parent ecosystem MadAutomate. The palette is Blush & Butter: blush paper `#FBEFF2`, blush pink `#F3CFD8` for buttons and selected states, butter yellow `#F7EBB5` for pills, and a soft plum-charcoal ink `#3D2F35` instead of black. Everything is low-contrast on purpose. Headlines use Epilogue Black and body text uses DM Sans; both are bundled in `frontend/public/fonts`.
+
+### The character video (not in this repo)
+
+The plush character beside each screen plays `frontend/public/character-scrub.mp4`. That clip is a third-party asset, so it isn't committed to this public repository. Put the file there locally to see the character. Without it, the app works the same and the character space just shows the page colour.

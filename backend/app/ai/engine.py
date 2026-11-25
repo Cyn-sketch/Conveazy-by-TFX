@@ -165,17 +165,40 @@ def disclosed_conditions(text: str) -> set[str]:
     return {k for k, pat in _CONDITIONS.items() if re.search(pat, text or "", re.I)}
 
 
+def _ngrams(text: str, n: int = 5) -> set[tuple[str, ...]]:
+    w = re.findall(r"[a-z']+", (text or "").lower())
+    return {tuple(w[i:i + n]) for i in range(len(w) - n + 1)}
+
+
+def _redact_leaks(text: str, story_grams: set) -> tuple[str, bool]:
+    """Drop any sentence that repeats 5+ consecutive words of a private story."""
+    if not text or not story_grams:
+        return text, False
+    keep, leaked = [], False
+    for sent in re.split(r"(?<=[.!?])\s+", text):
+        if _ngrams(sent) & story_grams:
+            leaked = True
+        else:
+            keep.append(sent)
+    return " ".join(keep).strip(), leaked
+
+
 def bridge(provider: LLMProvider, *, scraps: str, confirmed_meaning: str | None, context: dict,
            recipient_name: str, recipient_profile: dict, recipient_signal: dict | None,
-           include_feelings: bool = False) -> AIResult:
-    """Sender's rough scraps -> confirmed meaning -> a message written for this recipient."""
-    early, flags, crisis = _precheck("bridge", provider, scraps, confirmed_meaning)
+           include_feelings: bool = False, situation: str = "", intensity: int | None = None,
+           share_traits: bool = False, traits: list[dict] | None = None, recipient_story: str = "",
+           long_distance: str | None = None, sender_name: str = "your partner") -> AIResult:
+    """What happened (+ optional scraps) -> confirmed meaning -> a message written for this recipient,
+    plus a feeling brief that carries the sender's real intensity."""
+    from .knowledge.library import condition_lexicon, exercise_menu, exercises, hurt_points_text
+
+    early, flags, crisis = _precheck("bridge", provider, situation, scraps, confirmed_meaning)
     if early:
         return early
     retriever = get_retriever()
     disclosed = disclosed_conditions(recipient_profile.get("Diagnoses or health context I choose to share (optional)", ""))
     wants_anger = bool(re.search(r"rage|anger|angry|furious", " ".join(recipient_profile.values()) + " " + scraps, re.I))
-    query = " ".join([scraps, " ".join(disclosed), "anger" if wants_anger else "",
+    query = " ".join([situation, scraps, " ".join(disclosed), "anger" if wants_anger else "",
                       recipient_profile.get("What can trigger me", "")])
     # Never pull condition-specific evidence for a condition the recipient didn't disclose themselves.
     hits = [h for h in retriever.search(query, k=8, topics=sorted(disclosed) + (["anger"] if wants_anger else []))
@@ -184,20 +207,63 @@ def bridge(provider: LLMProvider, *, scraps: str, confirmed_meaning: str | None,
     landing = {"bpd", "anger", "attachment_reassurance", "emotional_regulation", "communication"}
     hits = sorted(hits, key=lambda h: (-len(set(h.doc.topics) & landing), -h.score))[:3]
     allowed = [h.doc.id for h in hits]
-    payload = {"scraps": scraps, "confirmed_meaning": confirmed_meaning, "recipient_name": recipient_name,
+    share_traits = bool(share_traits and traits)
+    payload = {"scraps": scraps, "situation": situation, "confirmed_meaning": confirmed_meaning,
+               "recipient_name": recipient_name, "sender_name": sender_name,
                "recipient_profile": recipient_profile, "recipient_signal": recipient_signal, "source_ids": allowed,
-               "include_feelings": include_feelings,
+               "include_feelings": include_feelings, "intensity": intensity, "share_traits": share_traits,
+               "traits": traits or [], "long_distance": long_distance, "sender_profile": (context.get("you") or {}).get("preferences", {}),
+               "condition_lexicon": condition_lexicon(sorted(disclosed)),
                "sender_intensity": (context.get("your_recent_checkin") or {}).get("intensity_value")}
-    body = "RECIPIENT CHECK-IN SIGNAL (shared with consent; may be null):\n" + json.dumps(recipient_signal) + \
-           "\n\nINCLUDE FEELINGS: " + str(include_feelings).lower() + \
-           "\n\nINPUT:\n" + json.dumps({"scraps": scraps, "confirmed_meaning": confirmed_meaning,
-                                         "recipient_name": recipient_name}, ensure_ascii=False)
-    system, user, ver = _compose("bridge", context, hits, body)
+    parts = ["RECIPIENT CHECK-IN SIGNAL (shared with consent; may be null):\n" + json.dumps(recipient_signal),
+             "INCLUDE FEELINGS: " + str(include_feelings).lower(),
+             f"SENDER'S OWN INTENSITY RATING (1-10, may be null; use it as-is in the brief): {intensity}",
+             "RELATIONSHIP: " + (f"long distance ({long_distance})" if long_distance else "not marked as long distance")]
+    if recipient_story:
+        parts.append(f"RECIPIENT'S PRIVATE STORY (the sender has NOT seen this). Use it only to understand what might hurt "
+                     f"{recipient_name} and to choose gentler wording. Never reveal, quote, hint at or refer to it anywhere "
+                     f"in your output:\n\"\"\"{recipient_story}\"\"\"")
+    hp = hurt_points_text(sorted(disclosed))
+    if hp:
+        parts.append("COMMON HURT POINTS for what the recipient chose to share (avoid even if not in their own triggers):\n" + hp)
+    parts.append("CALMING EXERCISES (pick ids for `calm` only from this list):\n" + exercise_menu())
+    if share_traits:
+        parts.append("TRAITS THE SENDER CHOSE TO SHARE (reword kindly for the brief):\n" + json.dumps(traits, ensure_ascii=False))
+    parts.append("INPUT:\n" + json.dumps({"what_happened": situation, "scraps": scraps, "confirmed_meaning": confirmed_meaning,
+                                          "sender_name": sender_name, "recipient_name": recipient_name}, ensure_ascii=False))
+    system, user, ver = _compose("bridge", context, hits, "\n\n".join(parts))
     parsed = _call(provider, LLMRequest("bridge", system, user, payload), BridgeResult)
     data = parsed.model_dump()
     data["source_ids"] = [i for i in data["source_ids"] if i in allowed]
     for w in data["why_this_works"]:
         if w["grounded_in"] == "evidence" and not data["source_ids"]:
             w["grounded_in"] = "general"
+    valid = exercises()
+    data["calm"] = [dict(c, **{"exercise": valid[c["id"]]}) for c in data["calm"] if c["id"] in valid][:3]
+    if data.get("brief"):
+        if intensity:
+            data["brief"]["intensity"] = intensity
+        if not share_traits:
+            data["brief"]["traits"] = []  # trait suggestions never leave the sender without their say-so
+    # Defence in depth: nothing from the recipient's private story may surface in what the sender sees.
+    grams = _ngrams(recipient_story)
+    leaked = False
+    if grams:
+        for k in ("message", "short_version", "timing_note"):
+            if data.get(k):
+                data[k], l = _redact_leaks(data[k], grams)
+                leaked |= l
+        for w in data["why_this_works"]:
+            w["reason"], l = _redact_leaks(w["reason"], grams)
+            leaked |= l
+        if data.get("brief"):
+            for k in ("feeling", "why", "need"):
+                data["brief"][k], l = _redact_leaks(data["brief"][k], grams)
+                leaked |= l
+        for a in data["alternatives"]:
+            a["text"], l = _redact_leaks(a["text"], grams)
+            leaked |= l
+    if leaked:
+        flags = dict(flags, private_story_redacted=True)
     citations = [retriever.get(i).citation() for i in data["source_ids"]]  # type: ignore[union-attr]
     return AIResult("bridge", "ok", provider.live, provider.name, ver, data, citations, crisis, safety=flags)

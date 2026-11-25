@@ -7,3 +7,8 @@ __pycache__/
 e2e/shots/
 *.tsbuildinfo
 .pytest_cache/
+
+# Kept local, never published
+footer-ui/
+# Character video is a third-party asset: add it locally (see README)
+frontend/public/character-scrub.mp4

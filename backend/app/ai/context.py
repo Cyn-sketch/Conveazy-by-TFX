@@ -29,7 +29,27 @@ PROFILE_FIELDS: dict[str, str] = {
     "overwhelmed_helps": "When I'm overwhelmed, this helps",
     "overwhelmed_doesnt_help": "When I'm overwhelmed, this doesn't help",
     "self_disclosed_context": "Diagnoses or health context I choose to share (optional)",
+    "my_story": "My story (private: never shown to my partner)",
+    "long_distance": "We're long distance (and the time difference)",
 }
+# Never shown to the partner, never quoted in any output. Used by the AI only to understand.
+PRIVATE_FIELDS = {"my_story"}
+
+
+def private_story(db: Session, user_id: str) -> str:
+    e = db.scalar(select(ProfileEntry).where(ProfileEntry.user_id == user_id, ProfileEntry.key == "my_story",
+                                             ProfileEntry.use_in_ai.is_(True)))
+    return (decrypt(e.value_enc) or "") if e else ""
+
+
+def long_distance(db: Session, *user_ids: str) -> str | None:
+    """Either partner can mark the relationship as long distance. Returns their note (e.g. the time difference)."""
+    for uid in user_ids:
+        e = db.scalar(select(ProfileEntry).where(ProfileEntry.user_id == uid, ProfileEntry.key == "long_distance"))
+        val = (decrypt(e.value_enc) or "").strip() if e else ""
+        if val and val.lower() not in ("no", "false", "0"):
+            return val
+    return None
 
 
 def partner_of(db: Session, user_id: str) -> User | None:

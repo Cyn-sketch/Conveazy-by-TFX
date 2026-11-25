@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import model_validator, BaseModel, EmailStr, Field
 
 Emotion = Literal["calm", "anxious", "overwhelmed", "angry", "hurt", "disconnected", "numb", "confused", "frustrated"]
 Need = Literal["reassurance", "affection", "clarity", "apology", "space", "listening", "practical_help", "solution"]
@@ -88,7 +88,17 @@ class ReflectIn(BaseModel):
 
 
 class BridgeIn(BaseModel):
-    scraps: str = Field(min_length=1, max_length=4000)
+    situation: str = Field(default="", max_length=6000)  # "What happened": enough on its own
+    scraps: str = Field(default="", max_length=4000)  # optional rough words
     confirmed_meaning: str | None = Field(default=None, max_length=1500)
     include_feelings: bool = False
+    intensity: int | None = Field(default=None, ge=1, le=10)  # the sender's own rating, shown in the brief
+    share_traits: bool = False  # trait suggestions stay private unless the sender opts in
+    traits: list[dict] = Field(default_factory=list, max_length=3)
     save: bool = False
+
+    @model_validator(mode="after")
+    def _need_something(self):
+        if not self.situation.strip() and not self.scraps.strip():
+            raise ValueError("Tell CONVEAZY what happened, or what you want to say.")
+        return self

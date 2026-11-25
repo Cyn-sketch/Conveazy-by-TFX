@@ -5,7 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..ai import engine
-from ..ai.context import PROFILE_FIELDS, _entries, build_personal_context, partner_checkin_signal, partner_of
+from ..ai.context import (PROFILE_FIELDS, _entries, build_personal_context, long_distance, partner_checkin_signal,
+                          partner_of, private_story)
 from ..ai.knowledge.retriever import corpus_meta, get_retriever
 from ..ai.providers import get_provider
 from ..db import get_db
@@ -139,15 +140,19 @@ def bridge(body: BridgeIn, db: Session = Depends(get_db), user: User = Depends(a
     r = engine.bridge(get_provider(), scraps=body.scraps, confirmed_meaning=body.confirmed_meaning, context=ctx,
                       recipient_name=partner.display_name if partner else "your partner",
                       recipient_profile=recipient_profile, recipient_signal=signal,
-                      include_feelings=body.include_feelings)
+                      include_feelings=body.include_feelings, situation=body.situation, intensity=body.intensity,
+                      share_traits=body.share_traits, traits=body.traits,
+                      recipient_story=private_story(db, partner.id) if partner else "",
+                      long_distance=long_distance(db, user.id, *([partner.id] if partner else [])),
+                      sender_name=user.display_name)
     out = r.to_dict()
     out["recipient"] = {"name": partner.display_name if partner else None, "profile_items_used": len(recipient_profile),
                         "checkin_signal": signal is not None}
     if body.save and user.save_history and r.status == "ok":
-        conv = Conversation(user_id=user.id, module="bridge", title=body.scraps[:80])
+        conv = Conversation(user_id=user.id, module="bridge", title=(body.situation or body.scraps)[:80])
         db.add(conv)
         db.flush()
-        _save(db, conv, body.scraps, r)
+        _save(db, conv, "\n\n".join(x for x in (body.situation, body.scraps) if x), r)
     return out
 
 

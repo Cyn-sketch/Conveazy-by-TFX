@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..ai.context import PROFILE_FIELDS, partner_of
+from ..ai.context import PROFILE_FIELDS, PRIVATE_FIELDS, partner_of
 from ..db import get_db
 from ..deps import current_user
 from ..models import ProfileEntry, Relationship, RelationshipMember, User
@@ -33,7 +33,8 @@ def put_entry(key: str, body: ProfileEntryIn, db: Session = Depends(get_db), use
         e = ProfileEntry(user_id=user.id, key=key, value_enc="")
         db.add(e)
     e.value_enc = encrypt(body.value.strip())  # type: ignore[assignment]
-    e.share_with_partner = body.share_with_partner
+    # "My story" is private by design: the partner can never see it, whatever the client sends.
+    e.share_with_partner = False if key in PRIVATE_FIELDS else body.share_with_partner
     e.use_in_ai = body.use_in_ai
     db.commit()
     return {"key": key, "share_with_partner": e.share_with_partner, "use_in_ai": e.use_in_ai}

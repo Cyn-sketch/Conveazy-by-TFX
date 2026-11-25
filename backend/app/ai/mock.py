@@ -110,9 +110,9 @@ def _detect(words: dict[str, list[str]], text: str) -> list[str]:
     return [k for k, kws in words.items() if any(kw in t for kw in kws)]
 
 
-def _soften(text: str) -> tuple[str, list[dict], list[dict]]:
+def _soften(text: str, extra: list | None = None) -> tuple[str, list[dict], list[dict]]:
     flags, changes, out = [], [], text
-    for pat, cat, land, repl in _LEXICON:
+    for pat, cat, land, repl in list(_LEXICON) + list(extra or []):
         m = re.search(pat, out, re.I)
         if not m:
             continue
@@ -291,9 +291,9 @@ def _fragments(text: str) -> list[str]:
 
 _RAW = [  # (signal regex, raw word, readout fragment)
     (r"[A-Z]{4,}|!{2,}|\bhate\b|\bsick of\b|\bfurious\b|\bpissed\b", "furious", "you're furious"),
-    (r"guess|what'?s going on|went quiet|go quiet|silent|ignor|left on read|no reply", "shut out", "you feel shut out, like you're left guessing"),
+    (r"guess|what'?s going on|went quiet|go quiet|silent|ignor|left on read|no reply|didn'?t reply|not replying", "shut out", "you feel shut out, like you're left guessing"),
     (r"\bagain\b|every time|keeps? happening|same thing", "worn down", "this has happened enough times that you're worn down by it"),
-    (r"drained|tired|exhausted|worn out|work was bad|bad day", "running on empty", "you're running on empty"),
+    (r"drained|tired|exhausted|worn out|work was (bad|awful|hell)|bad day|awful day", "running on empty", "you're running on empty"),
     (r"you (always )?think I'?m|you assume|misunderst", "misread", "you feel misread, like the way you're seen isn't who you are"),
     (r"alone|lonely", "lonely", "you feel alone in this"),
     (r"sorry|my fault|my bad", "guilty", "part of you feels guilty"),
@@ -335,8 +335,53 @@ def _raw_feelings(scraps: str, intensity: int | None) -> dict:
     return {"right_now": right_now, "feelings": words[:6], "underneath": underneath, "feelings_line": line}
 
 
+_TRAITS = {
+    "shut out": ("Reading silence as rejection", "When replies stop, your mind fills the gap with the worst story."),
+    "furious": ("Emotions rising very fast", "This went from upset to furious quickly, and it feels huge right now."),
+    "worn down": ("All-or-nothing thinking", "Words like 'always', 'never' or 'again' turn one moment into the whole pattern."),
+    "scared": ("Fear of being left", "Under the words there's a worry that this means they're pulling away."),
+    "running on empty": ("Shutting down when drained", "When you're running low, going quiet feels easier than explaining."),
+    "misread": ("Bracing to be misjudged", "You expect to be seen as the bad guy before you've even said your side."),
+    "guilty": ("Being hard on yourself", "You're taking more of the blame than the situation might call for."),
+    "lonely": ("Feeling alone in it", "You feel like you're carrying this by yourself."),
+}
+_LIKE = {
+    "shut out": "It's like texting someone you love and watching the message sit on 'seen' for hours. Every minute, your mind fills the silence with the worst story.",
+    "furious": "It's like being stuck in traffic when you're already late for something that really matters, and someone keeps honking at you.",
+    "worn down": "It's like an alarm that goes off every single day. Each time it gets harder to stay calm about it.",
+    "running on empty": "It's like trying to get through the whole day on 2% battery. Everything costs more than you have.",
+    "misread": "It's like explaining something carefully and having the other person hear the exact opposite.",
+    "scared": "It's like holding something precious right at the edge of a table and being afraid to look away.",
+    "lonely": "It's like being in a room full of people and still feeling like nobody can see you.",
+    "guilty": "It's like replaying a moment over and over, wishing you could take it back.",
+    "hurt": "It's like being hit in a spot that was already bruised.",
+    "scared of losing this": "It's like waiting for a phone call with important news that just doesn't come.",
+    "unsettled": "It's like a song stuck in your head that you can't quite name: it won't let you rest.",
+}
+_RAW_NAMES = {"furious": "really angry", "shut out": "shut out", "worn down": "worn down", "running on empty": "completely drained",
+              "misread": "misunderstood", "lonely": "alone", "guilty": "guilty", "scared": "scared", "hurt": "hurt",
+              "scared of losing this": "scared of losing this"}
+
+
+def _pick_calm(words: list[str]) -> list[dict]:
+    w, out = " ".join(words), []
+    def add(*ids):
+        out.extend(i for i in ids if i not in out)
+    if re.search(r"furious", w): add("stop", "cold", "move")
+    if re.search(r"shut out|lonely", w): add("facts", "breath")
+    if re.search(r"scared", w): add("breath", "ground", "worry")
+    if re.search(r"running on empty|worn down", w): add("tiny", "soothe", "kind")
+    if re.search(r"guilty", w): add("kind")
+    if re.search(r"misread|hurt", w): add("soothe", "breath")
+    add("breath", "stop", "soothe")
+    from .knowledge.library import exercises
+    ex = exercises()
+    return [{"id": i, "why": f"Good for {ex[i]['good']}."} for i in out[:3]]
+
+
 def _bridge(p: dict) -> dict:
-    raw_scraps: str = p["scraps"]
+    situation: str = p.get("situation") or ""
+    raw_scraps: str = p.get("scraps") or situation
     scraps: str = _expand(raw_scraps)
     name = p.get("recipient_name") or "your partner"
     prof: dict = p.get("recipient_profile") or {}
@@ -348,7 +393,7 @@ def _bridge(p: dict) -> dict:
 
     points, flags = [], []
     for frag in _fragments(scraps)[:6]:
-        soft, f, _ = _soften(frag)
+        soft, f, _ = _soften(frag, p.get("condition_lexicon"))
         flags += f
         soft = re.sub(r"\s+not because", ", not because", soft.rstrip("."))
         if soft:
@@ -368,7 +413,11 @@ def _bridge(p: dict) -> dict:
     if len(scraps.split()) < 5:
         clarify = f"Can you add a bit more about what happened, or what you'd like from {name}?"
 
-    rawf = _raw_feelings(raw_scraps, p.get("sender_intensity"))
+    rawf = _raw_feelings(raw_scraps + " " + situation, p.get("sender_intensity"))
+    rwords = rawf["feelings"]
+    rawf["intensity"] = 8 if ("furious" in rwords or {"shut out", "worn down"} <= set(rwords)) else 4 if rwords == ["unsettled"] else 6
+    rawf["traits"] = [{"trait": _TRAITS[w][0], "sign": _TRAITS[w][1]} for w in rwords if w in _TRAITS][:3]
+    ldr = p.get("long_distance")
     body = []
     if p.get("include_feelings"):
         body.append(rawf["feelings_line"])
@@ -383,12 +432,15 @@ def _bridge(p: dict) -> dict:
         avoided.append({"pattern": "Ending on something open or going quiet after sending", "because": "Silence after a hard message can feel like rejection."})
     if _BLAME.search(triggers) or flags:
         why.append({"choice": "Uses 'I' sentences instead of 'you' sentences", "reason": "It describes your experience instead of their character, so there's nothing to defend against." + (f" {name} listed blame or criticism as a trigger." if _BLAME.search(triggers) else ""), "grounded_in": "their_profile" if _BLAME.search(triggers) else "general"})
-    for f in flags[:3]:
+    for f in flags[:4]:
         avoided.append({"pattern": f"\"{f['phrase']}\"", "because": f["how_it_may_land"]})
     if _VAGUE.search(triggers):
         why.append({"choice": "Spells things out instead of hinting", "reason": f"{name} mentioned that short or vague replies are hard, so nothing is left to guess.", "grounded_in": "their_profile"})
     calm_line = None
-    if calms:
+    if calms and ldr:
+        calm_line = f"Whenever you're ready, can we get on a call? I know {calms[0].lower() + calms[1:].rstrip('.')} can help, and I'll do what I can from here."
+        why.append({"choice": f"Ends with what helps {name}", "reason": f"In {name}'s own words, this calms them down: \"{calms[:120]}\". You're long distance, so it offers a call instead of anything in person.", "grounded_in": "their_profile"})
+    elif calms:
         calm_line = f"Whenever you're ready, we can talk. I know {calms[0].lower() + calms[1:].rstrip('.')} can help, and I'm happy to do that."
         why.append({"choice": f"Ends with what helps {name}", "reason": f"In {name}'s own words, this calms them down: \"{calms[:120]}\".", "grounded_in": "their_profile"})
     if reassure:
@@ -429,13 +481,36 @@ def _bridge(p: dict) -> dict:
         "clarifying_question": clarify,
         "message": message,
         "short_version": short,
-        "alternatives": [{"style": "direct", "text": " ".join(body + ["Can we talk tonight?"]) or message}],
+        "alternatives": [{"style": "direct", "text": " ".join(body + ["Can we get on a call when you're free?" if ldr else "Can we talk tonight?"]) or message}],
         "why_this_works": why[:6] or [{"choice": "Kept it simple and in your own words", "reason": f"{name} hasn't shared a profile yet, so this follows general guidance.", "grounded_in": "general"}],
         "avoided": avoided[:6],
         "kept_true": ["Everything you said you feel"] + [f"Your point: {pt}" for pt in points[:3]],
         "timing_note": timing,
         "source_ids": [d.id for d in docs[:2]],
+        "brief": _brief(p, rawf, meaning) if p.get("confirmed_meaning") else None,
+        "calm": _pick_calm(rwords),
     }
+
+
+def _brief(p: dict, rawf: dict, meaning: str) -> dict:
+    sender = p.get("sender_name") or "your partner"
+    words = rawf["feelings"] or ["unsettled"]
+    feel = [_RAW_NAMES[w] for w in words if w in _RAW_NAMES][:3]
+    under = rawf.get("underneath")
+    feeling = f"{sender} is feeling {', '.join(feel) if feel else 'unsettled'} right now. This isn't a small thing for {sender}."
+    if under and not re.search(r"\byou\b", under, re.I):
+        feeling += " " + re.sub(r"^Under", "Underneath", under)
+    like = [_LIKE[w] for w in words if w in _LIKE][:2] or [_LIKE["unsettled"]]
+    sp = p.get("sender_profile") or {}
+    calm = sp.get("What calms me down", "")
+    ldr = p.get("long_distance")
+    if calm:
+        need = f"What would help right now: {calm[0].lower() + calm[1:].rstrip('.')}" + (", even from a distance (a call or a voice note works)." if ldr else ".")
+    else:
+        need = "What would help right now: a clear reply and " + ("a call when you can" if ldr else "some time together") + ", so there's no guessing."
+    why = re.sub(r"^You're trying to tell [^:]+:\s*|^You're trying to tell \w+ |^You want to tell \w+ ", "What it's about: ", meaning)
+    return {"feeling": feeling, "intensity": p.get("intensity") or rawf.get("intensity"), "why": why[:500], "like": like,
+            "need": need[:400], "traits": (p.get("traits") or [])[:3] if p.get("share_traits") else []}
 
 
 MockProvider._bridge = staticmethod(_bridge)  # type: ignore[attr-defined]

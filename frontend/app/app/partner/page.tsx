@@ -121,7 +121,7 @@ export default function Partner() {
           )}
           {turns.map((t, i) => (
             <div key={i} className="space-y-4">
-              <p className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-ink px-4 py-2.5 text-paper">{t.q}</p>
+              <p className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-blush px-4 py-2.5 text-ink">{t.q}</p>
               <Answer a={t.a} />
             </div>
           ))}

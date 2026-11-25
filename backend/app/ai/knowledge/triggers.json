@@ -1,0 +1,131 @@
+{
+ "_note": "Common hurt points for each condition, from clinical guidance and lived-experience accounts. General guidance only: always defer to the person's own triggers. Pending clinician review.",
+ "conditions": {
+  "bpd": {
+   "label": "BPD",
+   "detect": "\\bbpd\\b|borderline",
+   "items": [
+    {
+     "pattern": "\\byou'?re (being )?(too much|too sensitive|so dramatic|overreacting)\\b",
+     "phrase": "\"you're too much\" or \"you're overreacting\"",
+     "why": "It can land as 'your feelings are the problem', which feeds the fear of being too much to love.",
+     "instead": "this is a lot for me to take in, give me a second"
+    },
+    {
+     "pattern": "\\bi need (some )?space\\b(?![^.]*\\b(back|until|min|mins|minutes|hour|hours|tonight|tomorrow|later)\\b)",
+     "phrase": "\"I need space\" with no time to come back",
+     "why": "Without a time to come back, a pause can feel like being left.",
+     "instead": "I need a little time to think, and I'll come back to you in an hour"
+    },
+    {
+     "pattern": "\\b(i'?m done|we'?re done|i can'?t do this anymore|maybe we should break up)\\b",
+     "phrase": "\"I'm done\" or \"I can't do this anymore\"",
+     "why": "It sounds like the relationship is ending, which can set off panic about being abandoned.",
+     "instead": "I'm overwhelmed and need to pause, not leave"
+    },
+    {
+     "pattern": "\\byou'?re (crazy|psycho|insane|unstable|mental)\\b",
+     "phrase": "\"crazy\", \"psycho\" or \"unstable\"",
+     "why": "Labels like these cut straight to shame.",
+     "instead": null
+    }
+   ]
+  },
+  "depression": {
+   "label": "depression",
+   "detect": "depress|\\bmdd\\b",
+   "items": [
+    {
+     "pattern": "\\b(just )?(think|be) positive\\b|\\bcheer up\\b|\\blook on the bright side\\b",
+     "phrase": "\"think positive\" or \"cheer up\"",
+     "why": "It suggests the low mood is a choice, which adds guilt on top of it.",
+     "instead": "I'm here with you, even on the heavy days"
+    },
+    {
+     "pattern": "\\bsnap out of it\\b|\\bget over it\\b|\\bmove on already\\b",
+     "phrase": "\"snap out of it\" or \"get over it\"",
+     "why": "Depression can't be switched off, so this can make someone feel like they're failing.",
+     "instead": "take the time you need"
+    },
+    {
+     "pattern": "\\b(others|other people|people) have it worse\\b|\\bit could be worse\\b",
+     "phrase": "\"others have it worse\"",
+     "why": "Comparing pain makes people feel they're not allowed to struggle.",
+     "instead": "what you're going through is real"
+    },
+    {
+     "pattern": "\\byou'?re (so )?lazy\\b",
+     "phrase": "\"you're lazy\"",
+     "why": "Low energy is part of depression. 'Lazy' turns a symptom into a character flaw.",
+     "instead": "I've noticed it's been hard to get going lately"
+    },
+    {
+     "pattern": "\\bit'?s all in your head\\b",
+     "phrase": "\"it's all in your head\"",
+     "why": "It dismisses something that is very real to them.",
+     "instead": "I believe you that this is hard"
+    }
+   ]
+  },
+  "gad": {
+   "label": "anxiety",
+   "detect": "\\bgad\\b|anxiety",
+   "items": [
+    {
+     "pattern": "\\bwe need to talk\\b(?![^.]*\\babout\\b)",
+     "phrase": "a vague \"we need to talk\"",
+     "why": "An open-ended message leaves an anxious mind to fill in the worst case.",
+     "instead": "can we talk later? Nothing scary, I just want us to sort something out"
+    },
+    {
+     "pattern": "\\b(stop|don'?t) (worrying|worry about it)\\b|\\byou worry too much\\b",
+     "phrase": "\"stop worrying\" or \"don't worry about it\"",
+     "why": "Being told not to worry doesn't stop the worry, and can feel dismissive.",
+     "instead": "I get why that's worrying you"
+    },
+    {
+     "pattern": "\\byou'?re overthinking( this| it)?\\b",
+     "phrase": "\"you're overthinking\"",
+     "why": "It can feel like the anxiety is being mocked instead of understood.",
+     "instead": "I can see this is weighing on you"
+    },
+    {
+     "pattern": "\\bit'?s nothing\\b|\\bnever ?mind\\b",
+     "phrase": "\"it's nothing\" or \"never mind\"",
+     "why": "It leaves an open loop that anxiety keeps circling back to.",
+     "instead": "it's something small, I'll explain properly in a bit"
+    }
+   ]
+  },
+  "pcos": {
+   "label": "PCOS",
+   "detect": "pcos|pmos|polycystic",
+   "items": [
+    {
+     "pattern": "\\b(lose|losing) (some )?weight\\b|\\byou'?ve gained\\b|\\byou look (fat|bigger|heavier)\\b|\\bshould you (really )?(be )?eat(ing)? that\\b",
+     "phrase": "comments about weight or eating",
+     "why": "Weight and eating can be a painful, hard-to-control part of PCOS, so these land as shame.",
+     "instead": null
+    },
+    {
+     "pattern": "\\b(your )?(acne|pimples|facial hair)\\b",
+     "phrase": "comments about skin or hair",
+     "why": "Skin and hair changes can be a sore spot with PCOS.",
+     "instead": null
+    },
+    {
+     "pattern": "\\b(can'?t|never|won'?t) (have kids|have a baby|get pregnant)\\b",
+     "phrase": "remarks about fertility or having kids",
+     "why": "Fertility can be a deep worry with PCOS.",
+     "instead": null
+    },
+    {
+     "pattern": "\\bit'?s (just )?(your )?hormones\\b|\\bis it that time\\b|\\bare you on your period\\b",
+     "phrase": "\"it's just your hormones\"",
+     "why": "Writing feelings off as 'just hormones' feels dismissive.",
+     "instead": "I hear you"
+    }
+   ]
+  }
+ }
+}

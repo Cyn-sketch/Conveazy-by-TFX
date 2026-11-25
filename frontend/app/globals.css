@@ -2,50 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CONVEAZY palette: warm paper, deep ink, clay (you), sage (your partner), dusk (shared). */
+/* CONVEAZY in Blush & Butter: soft plum-charcoal ink on blush, butter yellow pills, blush pink buttons. Low contrast on purpose.
+   paper matches the character video's background exactly.
+   clay = you (dusty rose), sage/dusk = your partner and shared (soft gold). Light-only brand. */
+@font-face{font-family:'DM Sans';src:url('/fonts/DMSans-Regular.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:Epilogue;src:url('/fonts/Epilogue-Black.woff2') format('woff2');font-weight:900;font-style:normal;font-display:swap}
 :root {
-  --paper: 247 243 237;
-  --surface: 255 253 249;
-  --ink: 34 29 27;
-  --muted: 110 101 95;
-  --line: 226 218 208;
-  --clay: 168 92 66;
-  --sage: 92 115 96;
-  --dusk: 84 72 120;
-  --warn: 166 64 52;
+  --paper: 251 239 242;
+  --surface: 255 255 255;
+  --tag: 247 235 181;
+  --ink: 61 47 53;
+  --muted: 117 99 107;
+  --line: 240 220 226;
+  --clay: 176 92 118;
+  --sage: 150 128 60;
+  --dusk: 150 128 60;
+  --warn: 179 38 30;
+  --blush: 243 207 216;
   color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: 22 20 24;
-    --surface: 32 29 34;
-    --ink: 238 232 224;
-    --muted: 168 160 154;
-    --line: 58 53 60;
-    --clay: 222 150 120;
-    --sage: 150 180 152;
-    --dusk: 172 160 222;
-    --warn: 236 134 118;
-    color-scheme: dark;
-  }
+  font-synthesis: none;
 }
 
 html { -webkit-text-size-adjust: 100%; }
-body { @apply bg-paper text-ink font-sans antialiased; font-feature-settings: "ss01", "cv11"; }
+body { @apply bg-paper text-ink font-sans antialiased; }
 ::selection { background: rgb(var(--clay) / 0.2); }
 
 @layer components {
-  .card { @apply rounded-xl2 border border-line bg-surface p-5 sm:p-6; }
-  .eyebrow { @apply text-[11px] font-semibold uppercase tracking-[0.16em] text-muted; }
-  .h-display { @apply font-serif text-[2.1rem] leading-[1.08] tracking-[-0.01em] sm:text-5xl; font-variation-settings: "SOFT" 60, "opsz" 96; }
-  .h-page { @apply font-serif text-3xl leading-tight sm:text-[2.4rem]; font-variation-settings: "SOFT" 50, "opsz" 72; }
-  .h-card { @apply font-serif text-xl leading-snug; font-variation-settings: "SOFT" 40; }
-  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay/50 disabled:cursor-not-allowed disabled:opacity-50; }
-  .btn-primary { @apply btn bg-ink text-paper hover:bg-ink/85; }
-  .btn-ghost { @apply btn border border-line bg-transparent text-ink hover:bg-ink/5; }
-  .input { @apply w-full rounded-xl border border-line bg-surface px-4 py-3 text-[15px] text-ink placeholder:text-muted/70 focus:border-clay/60 focus:outline-none focus:ring-2 focus:ring-clay/20; }
-  .label { @apply mb-1.5 block text-sm font-medium; }
-  .chip { @apply rounded-full border border-line px-3.5 py-1.5 text-sm transition hover:border-ink/40; }
-  .chip-on { @apply border-ink bg-ink text-paper hover:border-ink; }
+  .card { @apply rounded-[1.5rem] bg-surface p-5 shadow-[0_1px_2px_rgb(61_47_53/0.04)] sm:p-6; }
+  .eyebrow { @apply inline-flex items-center rounded-full bg-tag px-3 py-1 text-[13px] text-ink; }
+  .h-display { @apply font-display text-[2.2rem] leading-[1.1] tracking-[-0.01em] sm:text-[3.2rem]; }
+  .h-page { @apply font-display text-[2rem] leading-[1.12] sm:text-[2.7rem]; }
+  .h-card { @apply font-display text-xl leading-snug; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-[15px] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink disabled:cursor-not-allowed disabled:opacity-40; }
+  .btn-primary { @apply btn bg-blush text-ink hover:bg-[rgb(236_191_203)]; }
+  .btn-ghost { @apply btn bg-tag text-ink hover:bg-[rgb(242_226_160)]; }
+  .input { @apply w-full rounded-2xl border border-transparent bg-white px-4 py-3 text-[16px] text-ink placeholder:text-muted focus:border-clay/50 focus:outline-none; }
+  .label { @apply mb-1.5 block text-[15px]; }
+  .chip { @apply rounded-full bg-surface px-3.5 py-1.5 text-sm transition hover:bg-tag; }
+  .chip-on { @apply bg-blush text-ink hover:bg-blush; }
   .prose-calm p { @apply mb-3 leading-relaxed; }
 }

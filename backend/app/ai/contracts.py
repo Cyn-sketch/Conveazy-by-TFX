@@ -90,12 +90,35 @@ class Avoided(BaseModel):
     because: str = Field(max_length=500)
 
 
+class Trait(BaseModel):
+    """A pattern the writer may be showing. A suggestion for self-understanding, never a diagnosis."""
+    trait: str = Field(max_length=120)
+    sign: str = Field(default="", max_length=400)
+
+
+class CalmPick(BaseModel):
+    id: str = Field(max_length=40)
+    why: str = Field(default="", max_length=300)
+
+
 class RawFeelings(BaseModel):
     """Private to the writer: an unfiltered read of what they seem to feel right now."""
     right_now: str = Field(max_length=900)
     feelings: list[str] = Field(default_factory=list, max_length=8)
     underneath: str | None = Field(default=None, max_length=500)
     feelings_line: str = Field(max_length=500)  # first-person, honest, sendable
+    intensity: int | None = Field(default=None, ge=1, le=10)
+    traits: list[Trait] = Field(default_factory=list, max_length=3)  # private unless the writer shares them
+
+
+class FeelingBrief(BaseModel):
+    """Goes with the message: what the sender truly feels, in plain words and everyday examples."""
+    feeling: str = Field(max_length=700)
+    intensity: int | None = Field(default=None, ge=1, le=10)
+    why: str = Field(default="", max_length=500)
+    like: list[str] = Field(default_factory=list, max_length=3)
+    need: str = Field(default="", max_length=400)
+    traits: list[Trait] = Field(default_factory=list, max_length=3)  # only when the sender chose to share
 
 
 class BridgeResult(BaseModel):
@@ -112,3 +135,5 @@ class BridgeResult(BaseModel):
     kept_true: list[str] = Field(default_factory=list, max_length=6)
     timing_note: str | None = Field(default=None, max_length=500)
     source_ids: list[str] = Field(default_factory=list, max_length=5)
+    brief: FeelingBrief | None = None
+    calm: list[CalmPick] = Field(default_factory=list, max_length=3)

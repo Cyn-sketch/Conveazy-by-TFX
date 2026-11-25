@@ -13,7 +13,7 @@ def test_bridge_understands_and_writes_for_recipient(couple):
     her, him = couple  # Asha (her), Ravi (him)
     _her_profile(her)
     r = him.post("/api/bridge", json={"scraps": SCRAPS}).json()
-    assert r["status"] == "ok" and r["live"] is False and r["prompt_version"] == "system.v1+bridge.v1"
+    assert r["status"] == "ok" and r["live"] is False and r["prompt_version"] == "system.v1+bridge.v2"
     res = r["result"]
     assert res["understood_meaning"].startswith("You're trying to tell Asha")
     assert "not going anywhere" in res["message"]
@@ -81,3 +81,80 @@ def test_include_feelings_puts_raw_line_in_message(couple):
     on = her.post("/api/bridge", json={"scraps": scraps, "include_feelings": True}).json()["result"]
     assert on["raw_feelings"]["feelings_line"] in on["message"]
     assert off["raw_feelings"]["feelings_line"] not in off["message"]
+
+
+# --- feeling brief, private story, trait suggestions, condition trigger words, long distance ---
+
+def test_situation_alone_is_enough_and_one_of_them_is_required(couple):
+    _, him = couple
+    r = him.post("/api/bridge", json={"situation": "Work was awful and I didn't reply for hours. She thinks I don't care."}).json()
+    assert r["status"] == "ok" and r["result"]["message"]
+    assert him.post("/api/bridge", json={"situation": " ", "scraps": ""}).status_code == 422
+
+
+def test_brief_carries_intensity_and_everyday_examples(couple):
+    her, him = couple
+    _her_profile(her)
+    r = him.post("/api/bridge", json={"situation": "I didn't reply for hours after work and she felt ignored.",
+                                      "scraps": SCRAPS, "confirmed_meaning": "I was drained, not ignoring you.",
+                                      "intensity": 9}).json()["result"]
+    b = r["brief"]
+    assert b and b["intensity"] == 9 and "Ravi" in b["feeling"]
+    assert len(b["like"]) >= 1 and all(x.startswith("It's like") for x in b["like"])
+    assert b["need"] and b["traits"] == []
+    assert r["raw_feelings"]["traits"], "trait suggestions are returned to the writer"
+    assert 1 <= len(r["calm"]) <= 3 and all(c["exercise"]["steps"] for c in r["calm"])
+
+
+def test_traits_only_reach_the_brief_when_the_writer_shares_them(couple):
+    _, him = couple
+    traits = [{"trait": "Shutting down when drained", "sign": "Went quiet instead of explaining."}]
+    base = {"scraps": SCRAPS, "confirmed_meaning": "I was drained.", "traits": traits}
+    assert him.post("/api/bridge", json=base).json()["result"]["brief"]["traits"] == []
+    shared = him.post("/api/bridge", json=dict(base, share_traits=True)).json()["result"]["brief"]["traits"]
+    assert shared and shared[0]["trait"] == "Shutting down when drained"
+
+
+def test_private_story_is_never_shared_or_shown(couple):
+    her, him = couple
+    story = "When I was young my father went silent for days and then left us without a word"
+    her.put("/api/profile/my_story", json={"value": story, "share_with_partner": True, "use_in_ai": True})
+    assert her.get("/api/profile").json()  # stored for her
+    rel = him.get("/api/relationship").json()
+    assert story not in str(rel), "my_story can never be shared, even if the client asks"
+    r = him.post("/api/bridge", json={"scraps": SCRAPS, "confirmed_meaning": "I was drained."}).json()
+    assert "father" not in str(r).lower()
+
+
+def test_story_leak_guard_redacts_sentences(couple):
+    from app.ai import engine
+    from app.ai.mock import MockProvider
+
+    story = "my father went silent for days and then left us"
+    class Leaky(MockProvider):
+        def complete_json(self, req):
+            out = super().complete_json(req)
+            out["message"] = "I'm here. I know my father went silent for days and then left us. I'm not leaving."
+            return out
+    r = engine.bridge(Leaky(), scraps=SCRAPS, confirmed_meaning="I was drained.", context={}, recipient_name="Asha",
+                      recipient_profile={}, recipient_signal=None, recipient_story=story)
+    assert "father" not in r.result["message"] and "I'm not leaving." in r.result["message"]
+    assert r.safety.get("private_story_redacted") is True
+
+
+def test_condition_trigger_words_are_avoided_for_disclosed_conditions(couple):
+    her, him = couple
+    _her_profile(her)
+    r = him.post("/api/bridge", json={"scraps": "you're overthinking it. i need space. snap out of it"}).json()["result"]
+    msg = r["message"].lower()
+    assert "overthinking" not in msg and "snap out of it" not in msg
+    assert "come back to you" in msg
+    assert any("common hurt point" in a["because"] for a in r["avoided"])
+
+
+def test_long_distance_offers_a_call_not_a_hug(couple):
+    her, him = couple
+    _her_profile(her)
+    her.put("/api/profile/long_distance", json={"value": "yes, Ravi is 4.5 hours behind", "share_with_partner": True, "use_in_ai": True})
+    r = him.post("/api/bridge", json={"scraps": SCRAPS}).json()["result"]
+    assert "call" in r["message"].lower()

@@ -9,7 +9,7 @@ type Rel = { status: "none" | "pending" | "linked"; invite_code?: string; partne
 function Switch({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
     <button type="button" role="switch" aria-checked={on} onClick={() => onChange(!on)} className="flex items-center gap-2 text-xs text-muted">
-      <span className={`relative h-5 w-9 rounded-full transition ${on ? "bg-ink" : "bg-line"}`}><span className={`absolute top-0.5 h-4 w-4 rounded-full bg-surface shadow transition ${on ? "left-[1.15rem]" : "left-0.5"}`} /></span>
+      <span className={`relative h-5 w-9 rounded-full transition ${on ? "bg-clay" : "bg-line"}`}><span className={`absolute top-0.5 h-4 w-4 rounded-full bg-surface shadow transition ${on ? "left-[1.15rem]" : "left-0.5"}`} /></span>
       {label}
     </button>
   );
@@ -25,16 +25,20 @@ function FieldEditor({ f, onSaved }: { f: Field; onSaved: () => void }) {
 
   async function save() {
     setState("saving");
-    if (value.trim()) await api(`/profile/${f.key}`, { method: "PUT", json: { value, share_with_partner: share, use_in_ai: ai } });
+    if (value.trim()) await api(`/profile/${f.key}`, { method: "PUT", json: { value, share_with_partner: isStory ? false : share, use_in_ai: ai } });
     else await api(`/profile/${f.key}`, { method: "DELETE" });
     setBase({ value, share, ai }); setState("saved"); onSaved(); setTimeout(() => setState("idle"), 1500);
   }
+  const isStory = f.key === "my_story";
   return (
-    <div className="card">
-      <label className="mb-2 block font-medium" htmlFor={f.key}>{f.label}</label>
-      <textarea id={f.key} rows={2} maxLength={2000} className="input text-sm" value={value} onChange={(e) => setValue(e.target.value)} />
+    <div className={`card ${isStory ? "border-dusk/40" : ""}`}>
+      {isStory && <p className="eyebrow mb-2">Private · never shown to your partner</p>}
+      <label className="mb-2 block font-medium" htmlFor={f.key}>{isStory ? "My story: anything from your past that shapes how you react today" : f.label}</label>
+      <textarea id={f.key} rows={isStory ? 4 : 2} maxLength={isStory ? 4000 : 2000} className="input text-sm" value={value} onChange={(e) => setValue(e.target.value)}
+        placeholder={isStory ? "e.g. People in my life used to go silent and then leave, so silence still feels unsafe to me." : f.key === "long_distance" ? "e.g. yes, they're 4.5 hours behind me" : undefined} />
+      {isStory && <p className="mt-2 text-xs leading-relaxed text-muted"><b className="font-medium text-ink">Only CONVEAZY&apos;s AI reads this</b>, so it can understand you, both when you write and when your partner writes to you. Your partner never sees it, and it never appears in a message, a brief or an explanation. Share only what you&apos;re comfortable with. You don&apos;t need names, places or details. CONVEAZY isn&apos;t therapy and doesn&apos;t diagnose.</p>}
       <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
-        <Switch on={share} onChange={setShare} label="Share with partner" />
+        {!isStory && <Switch on={share} onChange={setShare} label="Share with partner" />}
         <Switch on={ai} onChange={setAi} label="Let AI use this" />
         <button className="ml-auto text-sm font-medium disabled:text-muted" disabled={!dirty || state === "saving"} onClick={save}>{state === "saved" ? "Saved" : state === "saving" ? "Saving…" : "Save"}</button>
       </div>

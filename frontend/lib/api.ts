@@ -53,8 +53,12 @@ export type Reflection = {
   emotions: string[]; validation: string; possible_needs: string[]; communication: string;
   escalation_signs: string[]; next_step: string;
 };
+export type Trait = { trait: string; sign: string };
+export type Exercise = { id: string; name: string; good: string; source: string; steps: string[]; caution?: string };
+export type FeelingBrief = { feeling: string; intensity: number | null; why: string; like: string[]; need: string; traits: Trait[] };
 export type BridgeResult = {
-  raw_feelings: { right_now: string; feelings: string[]; underneath: string | null; feelings_line: string } | null;
+  raw_feelings: { right_now: string; feelings: string[]; underneath: string | null; feelings_line: string; intensity: number | null; traits: Trait[] } | null;
+  brief: FeelingBrief | null; calm: { id: string; why: string; exercise: Exercise }[];
   understood_meaning: string; core_points: string[]; sender_feelings: string[]; clarifying_question: string | null;
   message: string; short_version: string | null; alternatives: { style: string; text: string }[];
   why_this_works: { choice: string; reason: string; grounded_in: "their_profile" | "evidence" | "general" }[];

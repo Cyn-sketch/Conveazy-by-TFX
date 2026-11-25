@@ -8,11 +8,12 @@ export default {
     extend: {
       colors: {
         paper: v("paper"), surface: v("surface"), ink: v("ink"), muted: v("muted"), line: v("line"),
-        clay: v("clay"), sage: v("sage"), dusk: v("dusk"), warn: v("warn"),
+        tag: v("tag"), clay: v("clay"), sage: v("sage"), dusk: v("dusk"), warn: v("warn"), blush: v("blush"),
       },
       fontFamily: {
-        serif: ["'Fraunces Variable'", "Georgia", "serif"],
-        sans: ["'Inter Variable'", "system-ui", "sans-serif"],
+        serif: ["'DM Sans'", "Arial", "sans-serif"],
+        sans: ["'DM Sans'", "Arial", "sans-serif"],
+        display: ["Epilogue", "Arial", "sans-serif"],
       },
       borderRadius: { xl2: "1.25rem" },
       maxWidth: { read: "42rem" },
