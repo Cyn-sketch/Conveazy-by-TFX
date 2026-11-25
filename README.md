@@ -99,11 +99,37 @@ BASE_URL=http://localhost:3000 SHOTS=./e2e/shots npm run e2e
 
 ## Deployment
 
-- **Frontend:** Vercel (or any Node host). Set `CONVEAZY_API_URL` to the backend's internal URL.
+### Vercel (one project, two services)
+
+`vercel.json` at the repo root deploys both halves as one Vercel project on one domain:
+
+- **`frontend`** (Next.js, `frontend/`) is public at `/`.
+- **`backend`** (FastAPI, `backend/`, entrypoint `app.main:app`) is public at `/api/*`. Vercel passes the full path through, and every API route already starts with `/api`.
+- The browser calls `/api/...` on the same domain, so the session cookie stays first-party. The frontend never calls the backend from the server, so there are no service bindings.
+- Python 3.13 comes from `backend/.python-version`, and dependencies come from `backend/requirements.txt`.
+
+Set these in the Vercel project's Environment Variables:
+
+| Variable | Value |
+|---|---|
+| `CONVEAZY_ENV` | `production` |
+| `CONVEAZY_DATABASE_URL` | a hosted Postgres URL, such as Neon from the Vercel Marketplace. Use the pooled connection string. `postgres://` URLs are accepted. |
+| `CONVEAZY_JWT_SECRET` | 32+ random characters |
+| `CONVEAZY_DATA_ENCRYPTION_KEY` | a Fernet key (see `backend/.env.example`) |
+| `CONVEAZY_COOKIE_SECURE` | `true` |
+| `CONVEAZY_AI_PROVIDER` | `gemini` (or `mock` to try it without a key) |
+| `CONVEAZY_GEMINI_API_KEY` | your key |
+
+Tables are created on the backend's first start. Run `vercel dev` from the repo root to run both services together locally.
+
+Known limits on Vercel: rate limits are kept in memory per function instance, so they are looser than on a single server. The daily retention purge (`python -m app.maintenance purge`) isn't scheduled yet.
+
+### Elsewhere
+
 - **Backend:** a container on Fly.io, Render, Railway or Cloud Run: `uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2`. Set `CONVEAZY_ENV=production` and all secrets.
-- **Database:** Supabase Postgres or managed Postgres with encryption at rest and daily backups.
-- **Daily job:** `python -m app.maintenance purge` (retention).
-- Serve both under one domain (or set the cookie domain accordingly) so the session cookie stays first-party.
+- **Frontend:** any Node host, with `CONVEAZY_API_URL` pointing at the backend.
+- **Database:** managed Postgres with encryption at rest and daily backups.
+- Serve both under one domain so the session cookie stays first-party.
 
 ## Known limitations (honest list)
 

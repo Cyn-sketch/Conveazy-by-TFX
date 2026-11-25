@@ -3,7 +3,9 @@ from collections.abc import Iterator
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
-from sqlalchemy.pool import StaticPool
+import os
+
+from sqlalchemy.pool import NullPool, StaticPool
 
 from .config import get_settings
 
@@ -19,6 +21,9 @@ _SessionLocal: sessionmaker | None = None
 def make_engine(url: str) -> Engine:
     if url.startswith("sqlite"):
         return create_engine(url, connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    if os.environ.get("VERCEL"):
+        # Serverless: each function instance is short-lived, so don't hold idle connections open.
+        return create_engine(url, poolclass=NullPool)
     return create_engine(url, pool_pre_ping=True)
 
 
