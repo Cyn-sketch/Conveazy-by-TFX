@@ -12,7 +12,13 @@ from ..config import Settings, get_settings
 
 
 class ProviderError(RuntimeError):
-    pass
+    def __init__(self, message: str, status: int | None = None):
+        super().__init__(message)
+        self.status = status
+
+
+def _status(e: Exception) -> int | None:
+    return e.response.status_code if isinstance(e, httpx.HTTPStatusError) else None
 
 
 @dataclass
@@ -70,7 +76,7 @@ class OpenAIProvider:
             r.raise_for_status()
             return _parse_json(r.json()["choices"][0]["message"]["content"])
         except (httpx.HTTPError, KeyError, IndexError) as e:
-            raise ProviderError(f"OpenAI request failed: {type(e).__name__}") from e
+            raise ProviderError(f"OpenAI request failed: {type(e).__name__} {_status(e) or ''}".strip(), _status(e)) from e
 
 
 class GeminiProvider:
@@ -96,7 +102,7 @@ class GeminiProvider:
             r.raise_for_status()
             return _parse_json(r.json()["candidates"][0]["content"]["parts"][0]["text"])
         except (httpx.HTTPError, KeyError, IndexError) as e:
-            raise ProviderError(f"Gemini request failed: {type(e).__name__}") from e
+            raise ProviderError(f"Gemini request failed: {type(e).__name__} {_status(e) or ''}".strip(), _status(e)) from e
 
 
 def get_provider(settings: Settings | None = None) -> LLMProvider:

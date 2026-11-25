@@ -113,10 +113,10 @@ def test_fabricated_sources_are_dropped_and_downgraded():
 
 
 def test_invalid_output_retries_then_fails():
-    p = FakeProvider([{"nope": 1}, {"still": "bad"}])
+    p = FakeProvider([{"nope": 1}, {"still": "bad"}, {"again": "bad"}])
     with pytest.raises(engine.AIUnavailable):
         engine.ask_partner(p, question="why do they withdraw", history=[], context={})
-    assert p.calls == 2
+    assert p.calls == 3
 
 
 def test_invalid_then_valid_output_recovers():
