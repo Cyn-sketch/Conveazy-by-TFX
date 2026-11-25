@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gazeFrames from "./gaze-frames.json";
 
 // The blush character. On wide screens its recorded pupils follow the cursor: we seek the
@@ -23,9 +23,15 @@ function timeForAngle(angle: number) {
 
 export default function Character({ className = "" }: { className?: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  // The clip is a local-only asset (not in the public repo). Without it, render nothing.
+  const [missing, setMissing] = useState(false);
 
   useEffect(() => {
-    const video = videoRef.current!;
+    const video = videoRef.current;
+    if (!video) return;
+    const fail = () => setMissing(true);
+    if (video.error) fail();
+    video.addEventListener("error", fail);
     let frame = 0;
     let desiredTime = 0;
     let pointer: { x: number; y: number } | null = null;
@@ -65,6 +71,7 @@ export default function Character({ className = "" }: { className?: string }) {
     if (video.readyState >= 2) ready();
     return () => {
       disposed = true;
+      video.removeEventListener("error", fail);
       cancelAnimationFrame(frame);
       video.removeEventListener("seeked", schedule);
       video.removeEventListener("loadeddata", ready);
@@ -76,6 +83,7 @@ export default function Character({ className = "" }: { className?: string }) {
     };
   }, []);
 
+  if (missing) return null;
   return (
     <div aria-hidden="true" className={`pointer-events-none overflow-hidden ${className}`}>
       <video ref={videoRef} muted playsInline preload="auto" src="/character-scrub.mp4" className="absolute inset-0 block h-full w-full object-cover object-center" />
