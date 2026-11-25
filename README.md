@@ -77,9 +77,9 @@ Tables are created on startup in Phase 1. Moving to Alembic migrations is on the
 | `JWT_SECRET` | prod | ≥32 random chars for session signing |
 | `DATA_ENCRYPTION_KEY` | prod | Fernet key for field-level encryption at rest |
 | `COOKIE_SECURE` | prod | `true` behind HTTPS |
-| `AI_PROVIDER` | – | `mock` (default) \| `openai` \| `gemini` |
+| `AI_PROVIDER` | – | `mock` \| `openai` \| `gemini`; if unset, picks whichever key is present, else `mock` |
 | `OPENAI_API_KEY`, `OPENAI_MODEL` | if openai | default model `gpt-4o-mini` |
-| `GEMINI_API_KEY`, `GEMINI_MODEL` | if gemini | default model `gemini-1.5-flash` |
+| `GEMINI_API_KEY`, `GEMINI_MODEL` | if gemini | default model `gemini-2.5-flash`; `GEMINI_API_KEY` / `GOOGLE_API_KEY` also work without the prefix |
 | `AI_RATE_LIMIT_PER_MINUTE` | – | default 12 per user |
 | `AUTH_RATE_LIMIT_PER_MINUTE` | – | default 10 per IP |
 | `DEFAULT_RETENTION_DAYS` | – | default 365 |
@@ -117,8 +117,8 @@ Set these in the Vercel project's Environment Variables:
 | `CONVEAZY_JWT_SECRET` | 32+ random characters |
 | `CONVEAZY_DATA_ENCRYPTION_KEY` | 32+ random characters from a password generator (a Fernet key also works). Never change it once you have data, or old entries can't be read. |
 | `CONVEAZY_COOKIE_SECURE` | `true` |
-| `CONVEAZY_AI_PROVIDER` | `gemini` (or `mock` to try it without a key) |
-| `CONVEAZY_GEMINI_API_KEY` | your key |
+| `CONVEAZY_AI_PROVIDER` | `gemini` (optional: a Gemini key alone switches it on; set `mock` to force mock mode) |
+| `CONVEAZY_GEMINI_API_KEY` | your key (`GEMINI_API_KEY` also works). Redeploy after adding it. |
 
 Tables are created on the backend's first start. Run `vercel dev` from the repo root to run both services together locally.
 

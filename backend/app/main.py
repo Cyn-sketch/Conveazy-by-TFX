@@ -75,7 +75,8 @@ def _safe_reason(exc: Exception) -> str:
     from pydantic import ValidationError
     from sqlalchemy.exc import SQLAlchemyError
     if isinstance(exc, ValidationError):
-        fields = sorted({"CONVEAZY_" + str(e["loc"][0]).upper() for e in exc.errors() if e.get("loc")})
+        fields = sorted({(lambda n: n if n.startswith("CONVEAZY_") else "CONVEAZY_" + n)(str(e["loc"][0]).upper())
+                         for e in exc.errors() if e.get("loc")})
         return "Server setup problem: check these environment variables: " + ", ".join(fields) + "."
     if isinstance(exc, SQLAlchemyError):
         import os

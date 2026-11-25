@@ -42,6 +42,38 @@ class Settings(BaseSettings):
                     break
         return self
 
+    @field_validator("ai_provider", mode="before")
+    @classmethod
+    def _provider_name(cls, v):
+        # Be forgiving: "Gemini", " gemini ", "google gemini" all mean gemini. Anything unrecognised
+        # falls back to choosing by whichever key is present, instead of taking the whole app down.
+        if not isinstance(v, str):
+            return v
+        t = v.strip().strip("'\"").lower()
+        if "gemini" in t or "google" in t:
+            return "gemini"
+        if "openai" in t or "gpt" in t:
+            return "openai"
+        if t == "mock":
+            return "mock"
+        return "auto"
+
+    @field_validator("openai_api_key", "gemini_api_key")
+    @classmethod
+    def _strip_key(cls, v: str) -> str:
+        return v.strip().strip("'\"")
+
+    @model_validator(mode="after")
+    def _provider_from_key(self):
+        # A key with no provider chosen means "use that key"; an explicit CONVEAZY_AI_PROVIDER=mock still wins.
+        if "ai_provider" not in self.model_fields_set or self.ai_provider == "auto":
+            self.ai_provider = "mock"
+            if self.gemini_api_key:
+                self.ai_provider = "gemini"
+            elif self.openai_api_key:
+                self.ai_provider = "openai"
+        return self
+
     # Auth
     jwt_secret: str = Field(default="dev-only-change-me-dev-only-change-me", min_length=32)
     jwt_ttl_minutes: int = 60 * 24 * 7
@@ -52,10 +84,13 @@ class Settings(BaseSettings):
     data_encryption_key: str = ""
 
     # AI providers
-    ai_provider: Literal["mock", "openai", "gemini"] = "mock"
-    openai_api_key: str = ""
+    # The unprefixed names are accepted too, since they are what people usually type in a host's settings.
+    ai_provider: Literal["mock", "openai", "gemini", "auto"] = Field(
+        default="mock", validation_alias=AliasChoices("CONVEAZY_AI_PROVIDER", "AI_PROVIDER"))
+    openai_api_key: str = Field(default="", validation_alias=AliasChoices("CONVEAZY_OPENAI_API_KEY", "OPENAI_API_KEY"))
     openai_model: str = "gpt-4o-mini"
-    gemini_api_key: str = ""
+    gemini_api_key: str = Field(
+        default="", validation_alias=AliasChoices("CONVEAZY_GEMINI_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY"))
     gemini_model: str = "gemini-2.5-flash"
     ai_timeout_seconds: float = 45.0
 
