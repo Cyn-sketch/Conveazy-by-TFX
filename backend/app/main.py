@@ -58,4 +58,35 @@ def create_app(create_tables: bool = True) -> FastAPI:
     return app
 
 
-app = create_app()
+
+def _setup_error_app(message: str) -> FastAPI:
+    """When config or the database is wrong, answer every request with a clear JSON reason
+    instead of crashing, so the sign-up page can show what to fix. Never includes secret values."""
+    broken = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+
+    @broken.api_route("/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
+    def _explain(path: str):
+        return JSONResponse(status_code=503, content={"detail": {"code": "server_setup", "message": message}})
+
+    return broken
+
+
+def _safe_reason(exc: Exception) -> str:
+    from pydantic import ValidationError
+    from sqlalchemy.exc import SQLAlchemyError
+    if isinstance(exc, ValidationError):
+        fields = sorted({"CONVEAZY_" + str(e["loc"][0]).upper() for e in exc.errors() if e.get("loc")})
+        return "Server setup problem: check these environment variables: " + ", ".join(fields) + "."
+    if isinstance(exc, SQLAlchemyError):
+        return ("Server setup problem: can't reach the database. Check CONVEAZY_DATABASE_URL "
+                "(use the pooled Postgres connection string) and redeploy.")
+    if isinstance(exc, RuntimeError) and str(exc).startswith("Unsafe production config"):
+        return "Server setup problem: " + str(exc).split(": ", 1)[1] + "."
+    return "Server setup problem: the API couldn't start. Check the backend logs in Vercel."
+
+
+try:
+    app = create_app()
+except Exception as exc:  # noqa: BLE001 - startup must never crash without telling the user why
+    log.exception("startup failed")
+    app = _setup_error_app(_safe_reason(exc))

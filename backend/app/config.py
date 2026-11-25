@@ -52,6 +52,12 @@ class Settings(BaseSettings):
             problems.append("CONVEAZY_JWT_SECRET must be set")
         if not self.data_encryption_key:
             problems.append("CONVEAZY_DATA_ENCRYPTION_KEY must be set")
+        else:
+            try:
+                from cryptography.fernet import Fernet
+                Fernet(self.data_encryption_key.encode())
+            except Exception:  # noqa: BLE001
+                problems.append("CONVEAZY_DATA_ENCRYPTION_KEY isn't a valid Fernet key (44 characters ending in '=')")
         if not self.cookie_secure:
             problems.append("CONVEAZY_COOKIE_SECURE must be true")
         if problems:
