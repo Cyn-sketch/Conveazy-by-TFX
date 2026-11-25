@@ -45,7 +45,18 @@ class Settings(BaseSettings):
     @field_validator("ai_provider", mode="before")
     @classmethod
     def _provider_name(cls, v):
-        return v.strip().lower() if isinstance(v, str) else v
+        # Be forgiving: "Gemini", " gemini ", "google gemini" all mean gemini. Anything unrecognised
+        # falls back to choosing by whichever key is present, instead of taking the whole app down.
+        if not isinstance(v, str):
+            return v
+        t = v.strip().strip("'\"").lower()
+        if "gemini" in t or "google" in t:
+            return "gemini"
+        if "openai" in t or "gpt" in t:
+            return "openai"
+        if t == "mock":
+            return "mock"
+        return "auto"
 
     @field_validator("openai_api_key", "gemini_api_key")
     @classmethod
@@ -55,7 +66,8 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _provider_from_key(self):
         # A key with no provider chosen means "use that key"; an explicit CONVEAZY_AI_PROVIDER=mock still wins.
-        if "ai_provider" not in self.model_fields_set:
+        if "ai_provider" not in self.model_fields_set or self.ai_provider == "auto":
+            self.ai_provider = "mock"
             if self.gemini_api_key:
                 self.ai_provider = "gemini"
             elif self.openai_api_key:
@@ -73,7 +85,7 @@ class Settings(BaseSettings):
 
     # AI providers
     # The unprefixed names are accepted too, since they are what people usually type in a host's settings.
-    ai_provider: Literal["mock", "openai", "gemini"] = Field(
+    ai_provider: Literal["mock", "openai", "gemini", "auto"] = Field(
         default="mock", validation_alias=AliasChoices("CONVEAZY_AI_PROVIDER", "AI_PROVIDER"))
     openai_api_key: str = Field(default="", validation_alias=AliasChoices("CONVEAZY_OPENAI_API_KEY", "OPENAI_API_KEY"))
     openai_model: str = "gpt-4o-mini"
