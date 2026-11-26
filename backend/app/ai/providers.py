@@ -3,12 +3,16 @@ safety and context assembly live in the engine so they apply to every provider."
 from __future__ import annotations
 
 import json
+import logging
+import re
 from dataclasses import dataclass, field
 from typing import Protocol
 
 import httpx
 
 from ..config import Settings, get_settings
+
+log = logging.getLogger("conveazy.ai")
 
 
 class ProviderError(RuntimeError):
@@ -79,6 +83,24 @@ class OpenAIProvider:
             raise ProviderError(f"OpenAI request failed: {type(e).__name__} {_status(e) or ''}".strip(), _status(e)) from e
 
 
+_GEMINI = "https://generativelanguage.googleapis.com/v1beta"
+_gemini_model_swap: dict[str, str] = {}  # configured name -> working name found after a 404
+
+
+def _model_rank(name: str) -> tuple:
+    """Prefer a stable "latest" Flash alias, then the newest stable Flash version."""
+    n = name.lower()
+    version = tuple(int(x) for x in re.findall(r"(\d+)", n.split("gemini-", 1)[-1])[:2])
+    return ("latest" in n, not re.search(r"preview|exp", n), version)
+
+
+def pick_gemini_model(models: list[dict]) -> str | None:
+    names = [m.get("name", "").removeprefix("models/") for m in models
+             if "generateContent" in m.get("supportedGenerationMethods", [])]
+    flash = [n for n in names if "flash" in n and not re.search(r"lite|image|tts|audio|live|thinking|embed", n)]
+    return max(flash, key=_model_rank) if flash else None
+
+
 class GeminiProvider:
     name = "gemini"
     live = True
@@ -86,23 +108,47 @@ class GeminiProvider:
     def __init__(self, s: Settings):
         self.s = s
 
-    def complete_json(self, req: LLMRequest) -> dict:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.s.gemini_model}:generateContent"
+    def _post(self, model: str, req: LLMRequest) -> httpx.Response:
+        return httpx.post(
+            f"{_GEMINI}/models/{model}:generateContent",
+            headers={"x-goog-api-key": self.s.gemini_api_key},
+            json={
+                "systemInstruction": {"parts": [{"text": req.system}]},
+                "contents": [{"role": "user", "parts": [{"text": req.user}]}],
+                "generationConfig": {"temperature": 0.6, "responseMimeType": "application/json"},
+            },
+            timeout=self.s.ai_timeout_seconds,
+        )
+
+    def _discover(self) -> str | None:
+        """Ask Google which models this key can use (called only after a 404)."""
         try:
-            r = httpx.post(
-                url,
-                headers={"x-goog-api-key": self.s.gemini_api_key},
-                json={
-                    "systemInstruction": {"parts": [{"text": req.system}]},
-                    "contents": [{"role": "user", "parts": [{"text": req.user}]}],
-                    "generationConfig": {"temperature": 0.6, "responseMimeType": "application/json"},
-                },
-                timeout=self.s.ai_timeout_seconds,
-            )
+            r = httpx.get(f"{_GEMINI}/models", params={"pageSize": 1000},
+                          headers={"x-goog-api-key": self.s.gemini_api_key}, timeout=15)
             r.raise_for_status()
-            return _parse_json(r.json()["candidates"][0]["content"]["parts"][0]["text"])
-        except (httpx.HTTPError, KeyError, IndexError) as e:
-            raise ProviderError(f"Gemini request failed: {type(e).__name__} {_status(e) or ''}".strip(), _status(e)) from e
+            return pick_gemini_model(r.json().get("models", []))
+        except (httpx.HTTPError, ValueError) as e:
+            log.warning("gemini model discovery failed: %s", type(e).__name__)
+            return None
+
+    def complete_json(self, req: LLMRequest) -> dict:
+        configured = self.s.gemini_model
+        model = _gemini_model_swap.get(configured, configured)
+        try:
+            r = self._post(model, req)
+            if r.status_code == 404:
+                found = self._discover()
+                if found and found != model:
+                    log.warning("gemini model %r not found; switching to %r", model, found)
+                    _gemini_model_swap[configured] = model = found
+                    r = self._post(model, req)
+            r.raise_for_status()
+            parts = r.json()["candidates"][0]["content"]["parts"]
+            text = next(p["text"] for p in parts if "text" in p and not p.get("thought"))
+            return _parse_json(text)
+        except (httpx.HTTPError, KeyError, IndexError, StopIteration) as e:
+            raise ProviderError(f"Gemini request failed ({model}): {type(e).__name__} {_status(e) or ''}".strip(),
+                                _status(e)) from e
 
 
 def get_provider(settings: Settings | None = None) -> LLMProvider:
