@@ -92,7 +92,9 @@ class Settings(BaseSettings):
     gemini_api_key: str = Field(
         default="", validation_alias=AliasChoices("CONVEAZY_GEMINI_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY"))
     gemini_model: str = "gemini-flash-latest"  # Google's alias for the current Flash model
-    ai_timeout_seconds: float = 45.0
+    ai_timeout_seconds: float = 20.0  # per model try; a busy model is skipped rather than waited on
+    # Backup models tried when the main one is busy (comma-separated); more are found automatically.
+    gemini_fallback_models: str = "gemini-flash-lite-latest"
 
     # Abuse protection
     ai_rate_limit_per_minute: int = 12
