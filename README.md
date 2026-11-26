@@ -32,17 +32,17 @@ One partner finds it hard to put feelings into words. The other may feel things 
 
 Architecture, schema, journeys, prompt design and privacy flows: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**. API contracts: **[docs/API.md](docs/API.md)**.
 
-## Going live with Claude
+## Going live with a free Gemini key (two-person test)
 
-1. At console.anthropic.com, add credits under Billing, then create a key under API keys.
-2. In the backend's environment set `ANTHROPIC_API_KEY=<your key>`. That alone switches the AI on. The default model is `claude-sonnet-5-5` (override with `CONVEAZY_CLAUDE_MODEL`).
+1. Get a key at aistudio.google.com (API keys).
+2. In the backend's environment set `CONVEAZY_AI_PROVIDER=gemini` and `CONVEAZY_GEMINI_API_KEY=<your key>`. The default model is `gemini-flash-latest` (override with `CONVEAZY_GEMINI_MODEL`).
 3. Never commit the key. Put it in your host's secret settings.
 
-Privacy note: Anthropic does not train on API inputs or outputs by default.
+Privacy note: on Google's free tier, Google may use prompts to improve its products and human reviewers may read them. Use nicknames, keep "My story" general, and switch to a paid key before anyone else uses CONVEAZY.
 
 ## Mock mode: read this first
 
-Without an API key, the backend uses **`MockProvider`**: deterministic, rule-based output so every flow works in development and tests. Every mock response carries `live: false`, and the UI shows a **"Mock mode: not live AI"** badge on the shell and on each result. It is not a language model and is never presented as one. Set `ANTHROPIC_API_KEY` to go live. Nothing else changes.
+Without an API key, the backend uses **`MockProvider`**: deterministic, rule-based output so every flow works in development and tests. Every mock response carries `live: false`, and the UI shows a **"Mock mode: not live AI"** badge on the shell and on each result. It is not a language model and is never presented as one. Set `CONVEAZY_AI_PROVIDER=openai` (or `gemini`) plus the key to go live. Nothing else changes.
 
 ## Local setup
 
@@ -77,9 +77,9 @@ Tables are created on startup in Phase 1. Moving to Alembic migrations is on the
 | `JWT_SECRET` | prod | ≥32 random chars for session signing |
 | `DATA_ENCRYPTION_KEY` | prod | Fernet key for field-level encryption at rest |
 | `COOKIE_SECURE` | prod | `true` behind HTTPS |
-| `AI_PROVIDER` | – | `mock` \| `claude`; if unset, uses Claude when a key is present, else `mock` |
-| `ANTHROPIC_API_KEY` | for live AI | also accepted as `CONVEAZY_ANTHROPIC_API_KEY` |
-| `CLAUDE_MODEL`, `CLAUDE_EFFORT` | – | default `claude-sonnet-5-5`, effort `low` (`low` \| `medium` \| `high`; higher is slower) |
+| `AI_PROVIDER` | – | `mock` \| `openai` \| `gemini`; if unset, picks whichever key is present, else `mock` |
+| `OPENAI_API_KEY`, `OPENAI_MODEL` | if openai | default model `gpt-4o-mini` |
+| `GEMINI_API_KEY`, `GEMINI_MODEL` | if gemini | default model `gemini-flash-latest` (falls back to the newest available Flash model if Google retires a name); `GEMINI_API_KEY` / `GOOGLE_API_KEY` also work without the prefix |
 | `AI_RATE_LIMIT_PER_MINUTE` | – | default 12 per user |
 | `AUTH_RATE_LIMIT_PER_MINUTE` | – | default 10 per IP |
 | `DEFAULT_RETENTION_DAYS` | – | default 365 |
@@ -117,7 +117,8 @@ Set these in the Vercel project's Environment Variables:
 | `CONVEAZY_JWT_SECRET` | 32+ random characters |
 | `CONVEAZY_DATA_ENCRYPTION_KEY` | 32+ random characters from a password generator (a Fernet key also works). Never change it once you have data, or old entries can't be read. |
 | `CONVEAZY_COOKIE_SECURE` | `true` |
-| `ANTHROPIC_API_KEY` | your Claude key. Redeploy after adding it. (Set `CONVEAZY_AI_PROVIDER=mock` to force mock mode.) |
+| `CONVEAZY_AI_PROVIDER` | `gemini` (optional: a Gemini key alone switches it on; set `mock` to force mock mode) |
+| `CONVEAZY_GEMINI_API_KEY` | your key (`GEMINI_API_KEY` also works). Redeploy after adding it. |
 | `NEXT_PUBLIC_GRIEVANCE_NAME`, `NEXT_PUBLIC_GRIEVANCE_EMAIL` | who handles complaints (shown on the landing, sign-up and Privacy pages; hidden until the email is set) |
 
 Tables are created on the backend's first start. Run `vercel dev` from the repo root to run both services together locally.
@@ -139,7 +140,7 @@ Known limits on Vercel: rate limits are kept in memory per function instance, so
 - The rate limiter is in-memory (single process). Use Redis when running multiple workers.
 - No email verification or password reset yet. No Alembic migrations yet.
 - Mock rewrites are template-based and read stiffly. Real quality needs a live provider.
-- The live Claude path is covered by tests with a fake client, not yet against a real key.
+- Live OpenAI and Gemini paths are implemented but untested against real keys in this build.
 - Conflict Decoder and the full knowledge library UI are Phase 2. YouTube channels (`backend/app/ai/knowledge/youtube.json`) are a candidate list marked `verified: false`. Links are YouTube searches, so no channel handle is guessed. Verify credentials independently and with the YouTube Data API before marking them verified.
 - DSM-5-TR is used only as short paraphrases for explanation, never quoted and never used to diagnose. Condition-specific evidence is used only when the recipient disclosed that condition themselves.
 - The mock bridge expands texting shorthand and reorders scraps, but it can't truly understand them. Real "understanding" needs a live provider.

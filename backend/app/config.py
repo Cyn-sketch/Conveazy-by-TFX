@@ -45,18 +45,20 @@ class Settings(BaseSettings):
     @field_validator("ai_provider", mode="before")
     @classmethod
     def _provider_name(cls, v):
-        # Be forgiving: "Claude", " anthropic " both mean claude. Anything else (including an old
-        # "gemini" setting) falls back to choosing by the key, instead of taking the whole app down.
+        # Be forgiving: "Gemini", " gemini ", "google gemini" all mean gemini. Anything unrecognised
+        # falls back to choosing by whichever key is present, instead of taking the whole app down.
         if not isinstance(v, str):
             return v
         t = v.strip().strip("'\"").lower()
-        if "claude" in t or "anthropic" in t:
-            return "claude"
+        if "gemini" in t or "google" in t:
+            return "gemini"
+        if "openai" in t or "gpt" in t:
+            return "openai"
         if t == "mock":
             return "mock"
         return "auto"
 
-    @field_validator("anthropic_api_key")
+    @field_validator("openai_api_key", "gemini_api_key")
     @classmethod
     def _strip_key(cls, v: str) -> str:
         return v.strip().strip("'\"")
@@ -65,7 +67,11 @@ class Settings(BaseSettings):
     def _provider_from_key(self):
         # A key with no provider chosen means "use that key"; an explicit CONVEAZY_AI_PROVIDER=mock still wins.
         if "ai_provider" not in self.model_fields_set or self.ai_provider == "auto":
-            self.ai_provider = "claude" if self.anthropic_api_key else "mock"
+            self.ai_provider = "mock"
+            if self.gemini_api_key:
+                self.ai_provider = "gemini"
+            elif self.openai_api_key:
+                self.ai_provider = "openai"
         return self
 
     # Auth
@@ -79,14 +85,16 @@ class Settings(BaseSettings):
 
     # AI providers
     # The unprefixed names are accepted too, since they are what people usually type in a host's settings.
-    ai_provider: Literal["mock", "claude", "auto"] = Field(
+    ai_provider: Literal["mock", "openai", "gemini", "auto"] = Field(
         default="mock", validation_alias=AliasChoices("CONVEAZY_AI_PROVIDER", "AI_PROVIDER"))
-    anthropic_api_key: str = Field(
-        default="", validation_alias=AliasChoices("CONVEAZY_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY"))
-    claude_model: str = "claude-sonnet-5-5"
-    # How hard Claude thinks before answering: low | medium | high. Low keeps replies quick.
-    claude_effort: Literal["low", "medium", "high"] = "low"
-    ai_timeout_seconds: float = 45.0
+    openai_api_key: str = Field(default="", validation_alias=AliasChoices("CONVEAZY_OPENAI_API_KEY", "OPENAI_API_KEY"))
+    openai_model: str = "gpt-4o-mini"
+    gemini_api_key: str = Field(
+        default="", validation_alias=AliasChoices("CONVEAZY_GEMINI_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY"))
+    gemini_model: str = "gemini-flash-latest"  # Google's alias for the current Flash model
+    ai_timeout_seconds: float = 35.0  # per model try; writing the full message can take Gemini ~20-30 s
+    # Backup models tried when the main one is busy (comma-separated); more are found automatically.
+    gemini_fallback_models: str = "gemini-flash-lite-latest"
 
     # Abuse protection
     ai_rate_limit_per_minute: int = 12
