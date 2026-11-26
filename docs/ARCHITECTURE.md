@@ -20,7 +20,7 @@ CONVEAZY is a two-sided communication bridge for couples. It is not therapy, dia
    │   ├─ engine.py      ③ Communication Intelligence Engine (per-module orchestration + validation)
    │   ├─ contracts.py   Pydantic output schemas per module
    │   ├─ prompts/       Versioned prompt files (system.v1, translator.v1, partner.v1, myself.v1)
-   │   └─ providers.py   LLM abstraction: OpenAI · Gemini · Mock (labelled)
+   │   └─ providers.py   LLM abstraction: Claude · Mock (labelled)
    └─ models.py  SQLAlchemy 2 → PostgreSQL 16 (SQLite only in tests)
 ```
 
@@ -97,7 +97,7 @@ Sender types scraps → `POST /bridge` → **understood meaning** shown first �
 
 | Need | Choice | Credentials |
 |---|---|---|
-| LLM | OpenAI Chat Completions (JSON mode) or Google Gemini `generateContent` (JSON MIME) | `CONVEAZY_OPENAI_API_KEY` or `CONVEAZY_GEMINI_API_KEY` |
+| LLM | Claude Messages API via the official `anthropic` SDK (JSON reply) | `ANTHROPIC_API_KEY` |
 | Database | PostgreSQL 16 (self-hosted or Supabase Postgres) | `CONVEAZY_DATABASE_URL` |
 | Vector search | Phase 1: in-process TF-IDF cosine retriever. Phase 2: `pgvector` + provider embeddings | none / same LLM key |
 | YouTube (Phase 2) | YouTube Data API v3 (`search.list`, `videos.list`, `channels.list`) plus a human credential review | `YOUTUBE_API_KEY` |

@@ -37,7 +37,7 @@ class AIUnavailable(RuntimeError):
     pass
 
 
-BUSY_MESSAGE = "Gemini is busy right now. Please try again in a minute. Nothing you wrote was lost."
+BUSY_MESSAGE = "The AI is busy right now. Please try again in a minute. Nothing you wrote was lost."
 
 
 @dataclass
@@ -158,7 +158,7 @@ def _call(provider: LLMProvider, req: LLMRequest, contract: type[BaseModel],
             last_err = e
             log.warning("ai.%s provider error (attempt %d): %s", req.module, attempt + 1, e)
             if getattr(e, "busy", False):
-                # The provider already tried its backup models; more retries would only add waiting.
+                # The provider already retried; more retries would only add waiting.
                 raise AIUnavailable(BUSY_MESSAGE) from e
             continue
         except ValidationError as e:
