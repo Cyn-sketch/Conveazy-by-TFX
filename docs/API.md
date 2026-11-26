@@ -34,7 +34,7 @@ Errors are always `{"detail": {"code": str, "message": str}}`. Interactive docs:
 AI endpoints: 403 `consent_required`, 429 `rate_limited`, 503 `ai_unavailable`.
 
 ```ts
-AIEnvelope<T> = { module, status: "ok"|"crisis"|"declined", live: boolean, provider: "mock"|"openai"|"gemini",
+AIEnvelope<T> = { module, status: "ok"|"crisis"|"declined", live: boolean, provider: "mock"|"claude",
   prompt_version: string|null, result: T|null, citations: Citation[], crisis: Crisis|null, notice: string|null, safety: {crisis, manipulation, threat} }
 ```
 Schemas for `TranslatorResult`, `PartnerAnswer` and `ReflectionResult` are in `backend/app/ai/contracts.py` (frontend mirror: `frontend/lib/api.ts`).
