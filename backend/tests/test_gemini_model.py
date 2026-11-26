@@ -78,12 +78,12 @@ def test_busy_main_model_falls_back_and_sticks(monkeypatch):
     _reset()
 
 
-def test_timeout_counts_as_busy_and_gives_up_after_three_models(monkeypatch):
+def test_timeout_counts_as_busy_and_gives_up_after_two_models(monkeypatch):
     _reset(); posted = []
     _fake(monkeypatch, {"gemini-flash-lite-latest", "gemini-2.0-flash"}, posted, timeout_models={"gemini-flash-latest"})
     p = GeminiProvider(Settings(_env_file=None))
     import pytest
     with pytest.raises(providers.ProviderError) as e:
         p.complete_json(LLMRequest("bridge", "s", "u", {}))
-    assert e.value.busy and len(posted) == 3
+    assert e.value.busy and len(posted) == 2
     _reset()
