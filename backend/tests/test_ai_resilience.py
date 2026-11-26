@@ -41,7 +41,7 @@ def test_overlong_output_is_trimmed_not_rejected():
 
 def test_retries_after_provider_error_and_bad_json(monkeypatch):
     monkeypatch.setattr(engine.time, "sleep", lambda s: None)
-    prov = Scripted(ProviderError("Claude request failed: KeyError"), {"nonsense": 1}, _good())
+    prov = Scripted(ProviderError("Gemini request failed: KeyError"), {"nonsense": 1}, _good())
     assert engine._call(prov, _req(), BridgeResult).message
     assert prov.calls == 3
 
@@ -54,7 +54,7 @@ def test_disclosed_condition_may_be_restated_but_not_guessed():
 
 def test_busy_provider_fails_fast_with_friendly_message():
     import pytest
-    prov = Scripted(ProviderError("Claude request failed: HTTPStatusError 503", 503), _good())
+    prov = Scripted(ProviderError("Gemini request failed: HTTPStatusError 503", 503), _good())
     with pytest.raises(engine.AIUnavailable, match="busy"):
         engine._call(prov, _req(), BridgeResult)
     assert prov.calls == 1
