@@ -35,7 +35,7 @@ Architecture, schema, journeys, prompt design and privacy flows: **[docs/ARCHITE
 ## Going live with a free Gemini key (two-person test)
 
 1. Get a key at aistudio.google.com (API keys).
-2. In the backend's environment set `CONVEAZY_AI_PROVIDER=gemini` and `CONVEAZY_GEMINI_API_KEY=<your key>`. The default model is `gemini-2.5-flash` (override with `CONVEAZY_GEMINI_MODEL`).
+2. In the backend's environment set `CONVEAZY_AI_PROVIDER=gemini` and `CONVEAZY_GEMINI_API_KEY=<your key>`. The default model is `gemini-flash-latest` (override with `CONVEAZY_GEMINI_MODEL`).
 3. Never commit the key. Put it in your host's secret settings.
 
 Privacy note: on Google's free tier, Google may use prompts to improve its products and human reviewers may read them. Use nicknames, keep "My story" general, and switch to a paid key before anyone else uses CONVEAZY.
@@ -79,7 +79,7 @@ Tables are created on startup in Phase 1. Moving to Alembic migrations is on the
 | `COOKIE_SECURE` | prod | `true` behind HTTPS |
 | `AI_PROVIDER` | – | `mock` \| `openai` \| `gemini`; if unset, picks whichever key is present, else `mock` |
 | `OPENAI_API_KEY`, `OPENAI_MODEL` | if openai | default model `gpt-4o-mini` |
-| `GEMINI_API_KEY`, `GEMINI_MODEL` | if gemini | default model `gemini-2.5-flash`; `GEMINI_API_KEY` / `GOOGLE_API_KEY` also work without the prefix |
+| `GEMINI_API_KEY`, `GEMINI_MODEL` | if gemini | default model `gemini-flash-latest` (falls back to the newest available Flash model if Google retires a name); `GEMINI_API_KEY` / `GOOGLE_API_KEY` also work without the prefix |
 | `AI_RATE_LIMIT_PER_MINUTE` | – | default 12 per user |
 | `AUTH_RATE_LIMIT_PER_MINUTE` | – | default 10 per IP |
 | `DEFAULT_RETENTION_DAYS` | – | default 365 |
