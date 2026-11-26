@@ -139,9 +139,10 @@ export default function Bridge() {
               ? <button className="btn-primary" disabled={busy || !meaning.trim()} onClick={() => call(meaning)}>This is what I mean</button>
               : <><button className="btn-primary" disabled={busy} onClick={() => call(r.understood_meaning)}>Yes, that&apos;s it</button>
                 <button className="btn-ghost" onClick={() => setEditing(true)}>Not quite, let me fix it</button></>}
-            <button className="text-sm text-muted underline" onClick={() => setStage("write")}>Back</button>
-            {busy && <Spinner label="Writing it for them…" />}
+            <button className="text-sm text-muted underline" onClick={() => { setError(null); setStage("write"); }}>Back</button>
+            {busy && <Spinner label="Writing it for them… this can take up to a minute" />}
           </div>
+          <ErrorNote message={error} />
         </section>}
 
         {stage === "message" && r && <section className="space-y-5" aria-live="polite">

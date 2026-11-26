@@ -122,7 +122,7 @@ def rank_gemini_backups(models: list[dict]) -> list[str]:
 class GeminiProvider:
     name = "gemini"
     live = True
-    max_models = 3  # main model + up to two backups per request
+    max_models = 2  # main model + one backup, so a request stays around a minute at most
 
     def __init__(self, s: Settings):
         self.s = s
